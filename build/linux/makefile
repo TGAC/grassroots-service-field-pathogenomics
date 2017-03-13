@@ -1,22 +1,21 @@
-NAME 		= pathogenomics_service
-DIR_SRC = ../../src
-DIR_INCLUDE = ../../include
-CC		= gcc
-CXX		= g++
-MAKEDEPEND 	= gcc -MM -MF
+NAME 		:= pathogenomics_service
+DIR_BUILD :=  $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+DIR_SRC := $(realpath $(DIR_BUILD)/../../src)
+DIR_INCLUDE :=$(realpath $(DIR_BUILD)/../../include)
+CC		:= gcc
+CXX		:= g++
+MAKEDEPEND 	:= gcc -MM -MF
 
-BUILD		= debug
+VPATH := $(DIR_SRC)
 
-ifeq ($(DIR_ROOT),)
-export DIR_ROOT = $(realpath $(../..))
+
+ifeq ($(DIR_BUILD_UTILS),)
+export DIR_BUILD_UTILS = $(abspath $(realpath ../../../../build_utils/linux))
 endif
+include $(DIR_BUILD_UTILS)/project.properties
 
-ifneq ($(PROPERTIES_SET),1)
-include $(DIR_BUILD_ROOT)/project.properties
-endif
 
 export DIR_INSTALL=$(DIR_GRASSROOTS_INSTALL)/services
-
 VPATH	= \
 	$(DIR_SRC) \
 	
@@ -64,5 +63,5 @@ LDFLAGS += -L$(DIR_JANSSON_LIB) -ljansson \
 	-L$(DIR_GRASSROOTS_MONGODB_LIB) -l$(GRASSROOTS_MONGODB_LIB_NAME) 
 
 
-include $(DIR_BUILD_ROOT)/generic_makefiles/shared_library.makefile
+include $(DIR_BUILD_UTILS)/generic_makefiles/shared_library.makefile
 
