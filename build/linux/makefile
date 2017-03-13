@@ -1,7 +1,7 @@
 NAME 		= pathogenomics_service
-DIR_SRC = $(DIR_SERVICES_ROOT_SRC)/pathogenomics/src
-DIR_INCLUDE = $(DIR_SERVICES_ROOT_SRC)/pathogenomics/include
-CC		= g++
+DIR_SRC = ../../src
+DIR_INCLUDE = ../../include
+CC		= gcc
 CXX		= g++
 MAKEDEPEND 	= gcc -MM -MF
 
