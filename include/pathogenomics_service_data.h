@@ -51,7 +51,7 @@ typedef struct PathogenomicsServiceData PathogenomicsServiceData;
  *
  * @extends ServiceData
  */
-struct PATHOGENOMICS_SERVICE_LOCAL PathogenomicsServiceData
+struct /*PATHOGENOMICS_SERVICE_LOCAL*/ PathogenomicsServiceData
 {
 	/** The base ServiceData. */
 	ServiceData psd_base_data;

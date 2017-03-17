@@ -46,17 +46,6 @@
 #endif
 
 
-//#define TAG_UPDATE MAKE_TAG('P', 'G', 'U', 'P')
-//#define TAG_QUERY MAKE_TAG('P', 'G', 'Q', 'U')
-//#define TAG_REMOVE MAKE_TAG('P', 'G', 'R', 'M')
-//#define TAG_DUMP MAKE_TAG('P', 'G', 'D', 'P')
-//#define TAG_PREVIEW MAKE_TAG('P', 'G', 'P', 'V')
-//#define TAG_COLLECTION MAKE_TAG('P', 'G', 'C', 'O')
-//#define TAG_DATABASE MAKE_TAG('P', 'G', 'D', 'B')
-//#define TAG_DELIMITER MAKE_TAG('P', 'G', 'D', 'L')
-//#define TAG_FILE MAKE_TAG('P', 'G', 'F', 'I')
-
-
 static NamedParameterType PGS_UPDATE = { "Update", PT_JSON };
 static NamedParameterType PGS_QUERY = { "Search", PT_JSON };
 static NamedParameterType PGS_REMOVE = { "Delete", PT_JSON };
@@ -68,14 +57,7 @@ static NamedParameterType PGS_DELIMITER = { "Data delimiter", PT_CHAR };
 static NamedParameterType PGS_FILE = { "Upload", PT_TABLE};
 
 
-static const char *s_data_names_pp [PD_NUM_TYPES] =
-{
-	PG_SAMPLE_S,
-	PG_PHENOTYPE_S,
-	PG_GENOTYPE_S,
-	PG_FILES_S
-};
-
+static const char *s_data_names_pp [PD_NUM_TYPES];
 
 
 static const char s_default_column_delimiter =  '|';
@@ -135,7 +117,6 @@ static json_t *CopyValidRecord (const size_t i, json_t *src_record_p);
 
 static json_t *FilterResultsByDate (json_t *src_results_p, const bool preview_flag, json_t *(convert_record_fn) (const size_t i, json_t *src_record_p));
 
-static bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *error_s, const int index);
 
 
 /*
@@ -225,6 +206,11 @@ static Service *GetPathogenomicsService (void)
 
 					if (ConfigurePathogenomicsService (data_p))
 						{
+							*s_data_names_pp = PG_SAMPLE_S;
+							* (s_data_names_pp + 1) = PG_PHENOTYPE_S;
+							* (s_data_names_pp + 2) = PG_GENOTYPE_S;
+							* (s_data_names_pp + 3) = PG_FILES_S;
+
 							return service_p;
 						}
 
@@ -1357,6 +1343,7 @@ static char *CheckDataIsValid (const json_t *row_p, PathogenomicsServiceData *da
 }
 
 
+/*
 bool AddErrorMessage (json_t *errors_p, const json_t *values_p, const size_t row, const char * const error_s)
 {
 	bool success_flag = false;
@@ -1382,7 +1369,7 @@ bool AddErrorMessage (json_t *errors_p, const json_t *values_p, const size_t row
 
 	return success_flag;
 }
-
+*/
 
 
 static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p, const PathogenomicsData collection_type, PathogenomicsServiceData *data_p)
@@ -1460,7 +1447,7 @@ static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p
 }
 
 
-static bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *error_s, const int index)
+bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *error_s, const int index)
 {
 	char *dump_s = json_dumps (value_p, JSON_INDENT (2) | JSON_PRESERVE_ORDER);
 	const char *id_s = GetJSONString (value_p, PG_ID_S);

@@ -29,7 +29,7 @@
 #include "pathogenomics_service.h"
 #include "json_tools.h"
 
-static const uint32 S_NUM_COUNTRIES = 249;
+enum { S_NUM_COUNTRIES = 249 };
 
 static CountryCode s_countries_by_name_p [S_NUM_COUNTRIES] =
 /* "Country name","Code" */

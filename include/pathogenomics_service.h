@@ -254,6 +254,7 @@ PATHOGENOMICS_PREFIX const char *PG_SOUTH_WEST_LOCATION_S PATHOGENOMICS_VAL ("so
  */
 PATHOGENOMICS_PREFIX const char *PG_PRIVATE_VIEW_S PATHOGENOMICS_VAL ("ignore_live_dates");
 
+
 /**
  * The suffix attached to various keys used to create an associated key
  * that holds the value of when the first key's value should be made public.
@@ -296,7 +297,7 @@ PATHOGENOMICS_SERVICE_API ServicesArray *GetServices (UserDetails *user_p);
 PATHOGENOMICS_SERVICE_API void ReleaseServices (ServicesArray *services_p);
 
 
-PATHOGENOMICS_SERVICE_LOCAL bool AddErrorMessage (json_t *errors_p, const json_t *values_p, const size_t row, const char * const error_s);
+PATHOGENOMICS_SERVICE_LOCAL bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *error_s, const int index);
 
 
 #ifdef __cplusplus
