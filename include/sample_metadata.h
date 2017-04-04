@@ -28,10 +28,9 @@
 #ifndef SAMPLE_METADATA_H_
 #define SAMPLE_METADATA_H_
 
-#include "bson.h"
+
 #include "pathogenomics_service_library.h"
 #include "pathogenomics_service_data.h"
-#include "mongodb_tool.h"
 
 #include "pathogenomics_service.h"
 

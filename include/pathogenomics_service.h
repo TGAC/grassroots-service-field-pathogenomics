@@ -24,7 +24,6 @@
 
 #include "pathogenomics_service_library.h"
 #include "service.h"
-#include "mongodb_tool.h"
 
 /**
  * The name of the database to use to store all of the pathogenomics details.
