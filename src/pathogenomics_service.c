@@ -1412,18 +1412,18 @@ static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p
 					size_t i;
 
 					json_array_foreach (values_p, i, value_p)
-					{
-						const char *error_s = insert_fn (tool_p, value_p, data_p);
+						{
+							const char *error_s = insert_fn (tool_p, value_p, data_p);
 
-						if (error_s)
-							{
-								AddErrorMessage (job_p, value_p, error_s, i);
-							}
-						else
-							{
-								++ num_imports;
-							}
-					}
+							if (error_s)
+								{
+									AddErrorMessage (job_p, value_p, error_s, i);
+								}
+							else
+								{
+									++ num_imports;
+								}
+						}
 				}
 			else
 				{
