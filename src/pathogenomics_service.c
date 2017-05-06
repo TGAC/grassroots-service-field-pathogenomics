@@ -52,7 +52,6 @@ static NamedParameterType PGS_REMOVE = { "Delete", PT_JSON };
 static NamedParameterType PGS_DUMP = { "Dump data", PT_BOOLEAN };
 static NamedParameterType PGS_PREVIEW = { "Preview", PT_BOOLEAN };
 static NamedParameterType PGS_COLLECTION = { "Collection", PT_STRING };
-static NamedParameterType PGS_DATABASE = { "Database", PT_STRING };
 static NamedParameterType PGS_DELIMITER = { "Data delimiter", PT_CHAR };
 static NamedParameterType PGS_FILE = { "Upload", PT_TABLE};
 
