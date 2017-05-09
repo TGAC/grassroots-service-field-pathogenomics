@@ -200,7 +200,7 @@ static Service *GetPathogenomicsService (void)
 														 ClosePathogenomicsService,
 														 NULL,
 														 false,
-														 true,
+														 SY_SYNCHRONOUS,
 														 (ServiceData *) data_p);
 
 					if (ConfigurePathogenomicsService (data_p))
