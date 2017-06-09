@@ -577,10 +577,9 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 		{
 			ServiceJob *job_p = GetServiceJobFromServiceJobSet (service_p -> se_jobs_p, 0);
 
-
 			LogParameterSet (param_set_p, job_p);
 
-			job_p -> sj_status = OS_FAILED_TO_START;
+			SetServiceJobStatus (job_p, OS_FAILED_TO_START);
 
 			if (param_set_p)
 				{
@@ -605,7 +604,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 									SetMongoToolCollection (tool_p, data_p -> psd_database_s, collection_name_s);
 
-									job_p -> sj_status = OS_STARTED;
+									SetServiceJobStatus (job_p, OS_STARTED);
 									LogServiceJob (job_p);
 
 									/* Do we want to get a dump of the entire collection? */
@@ -672,11 +671,11 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 															if (i > 0)
 																{
-																	job_p -> sj_status = (i == json_array_size (raw_results_p)) ? OS_SUCCEEDED : OS_PARTIALLY_SUCCEEDED;
+																	SetServiceJobStatus (job_p, (i == json_array_size (raw_results_p)) ? OS_SUCCEEDED : OS_PARTIALLY_SUCCEEDED);
 																}
 															else
 																{
-																	job_p -> sj_status = OS_FAILED;
+																	SetServiceJobStatus (job_p, OS_FAILED);
 																}
 
 															json_decref (raw_results_p);
@@ -684,7 +683,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 													else
 														{
 															/* The call succeeded but all results were filtered out */
-															job_p -> sj_status = OS_SUCCEEDED;
+															SetServiceJobStatus (job_p, OS_SUCCEEDED);
 														}
 
 
@@ -779,6 +778,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 											if (json_param_p)
 												{
 													uint32 size = 1;
+													OperationStatus status;
 
 													if (json_is_array (json_param_p))
 														{
@@ -790,16 +790,18 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 													if (num_successes == 0)
 														{
-															job_p -> sj_status = OS_FAILED;
+															status = OS_FAILED;
 														}
 													else if (num_successes == size)
 														{
-															job_p -> sj_status = OS_SUCCEEDED;
+															status = OS_SUCCEEDED;
 														}
 													else
 														{
-															job_p -> sj_status = OS_PARTIALLY_SUCCEEDED;
+															status = OS_PARTIALLY_SUCCEEDED;
 														}
+
+													SetServiceJobStatus (job_p, status);
 
 													if (free_json_param_flag)
 														{
@@ -827,6 +829,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 											else if (((param_p = GetParameterFromParameterSetByName (param_set_p, PGS_REMOVE.npt_name_s)) != NULL) && (!IsJSONEmpty (param_p -> pa_current_value.st_json_p)))
 												{
 													uint32 size = 1;
+													OperationStatus status;
 
 													if (json_is_array (json_param_p))
 														{
@@ -838,16 +841,18 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 													if (num_successes == 0)
 														{
-															job_p -> sj_status = OS_FAILED;
+															status = OS_FAILED;
 														}
 													else if (num_successes == size)
 														{
-															job_p -> sj_status = OS_SUCCEEDED;
+															status = OS_SUCCEEDED;
 														}
 													else
 														{
-															job_p -> sj_status = OS_PARTIALLY_SUCCEEDED;
+															status = OS_PARTIALLY_SUCCEEDED;
 														}
+
+													SetServiceJobStatus (job_p, status);
 												}
 
 											if (json_param_p)
