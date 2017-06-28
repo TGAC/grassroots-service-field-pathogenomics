@@ -48,7 +48,7 @@ const char *InsertFilesData (MongoTool *tool_p, json_t *values_p, PathogenomicsS
 
 							if (json_object_set (doc_p, PG_FILES_S, values_p) == 0)
 								{
-									error_s = InsertOrUpdateMongoData (tool_p, doc_p, NULL, NULL, PG_ID_S, NULL, NULL);
+									error_s = EasyInsertOrUpdateMongoData (tool_p, doc_p, PG_ID_S);
 
 									/*
 									char *date_s = ConcatenateStrings (PG_FILES_S, PG_LIVE_DATE_SUFFIX_S);

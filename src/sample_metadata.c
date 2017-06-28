@@ -174,7 +174,7 @@ const char *InsertSampleData (MongoTool *tool_p, json_t *values_p, Pathogenomics
 																			PrintJSONToLog (STM_LEVEL_FINE, __FILE__, __LINE__, record_p, "sample json:");
 																			#endif
 
-																			error_s = InsertOrUpdateMongoData (tool_p, record_p, NULL, NULL, PG_ID_S, NULL, NULL);
+																			error_s = EasyInsertOrUpdateMongoData (tool_p, record_p, PG_ID_S);
 
 																			if ((!error_s) && selector_p)
 																				{
