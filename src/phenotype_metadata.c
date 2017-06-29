@@ -65,7 +65,7 @@ const char *InsertPhenotypeData (MongoTool *tool_p, json_t *values_p, Pathogenom
 										{
 											if (AddPublishDateToJSON (doc_p, date_s, true))
 												{
-													error_s = InsertOrUpdateMongoData (tool_p, doc_p, NULL, NULL, PG_UKCPVS_ID_S, NULL, NULL);
+													error_s = EasyInsertOrUpdateMongoData (tool_p, doc_p, PG_UKCPVS_ID_S);
 												}
 											else
 												{
