@@ -12,7 +12,11 @@ The files to build the SamTools service are in the ```build/<platform>``` direct
 
 Enter the build directory 
 
-```cd build/linux```
+```
+cd build/linux
+```
+
+then
 
 ```
 make all
