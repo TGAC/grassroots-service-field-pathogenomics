@@ -277,7 +277,8 @@ extern "C"
 /**
  * Get the Service available for running the Pathogenomics Service.
  *
- * @param config_p The service configuration data.
+ * @param user_p The UserDetails for the user trying to access the services.
+ * This can be <code>NULL</code>.
  * @return The ServicesArray containing the Pathogenomics Service. or
  * <code>NULL</code> upon error.
  *
