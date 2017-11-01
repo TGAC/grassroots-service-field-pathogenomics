@@ -86,7 +86,7 @@ bool CheckSampleData (const LinkedList *headers_p, ServiceJob *job_p, Pathogenom
 }
 
 
-const char *InsertSampleData (MongoTool *tool_p, json_t *values_p, PathogenomicsServiceData *data_p)
+const char *InsertSampleData (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData *data_p)
 {
 	const char *error_s = NULL;
 	const char *pathogenomics_id_s = GetJSONString (values_p, PG_ID_S);
@@ -168,7 +168,7 @@ const char *InsertSampleData (MongoTool *tool_p, json_t *values_p, Pathogenomics
 
 															if (date_s)
 																{
-																	if (AddPublishDateToJSON (record_p, date_s, true))
+																	if (AddPublishDateToJSON (record_p, date_s, stage_time, true))
 																		{
 																			#if SAMPLE_METADATA_DEBUG >= STM_LEVEL_FINE
 																			PrintJSONToLog (STM_LEVEL_FINE, __FILE__, __LINE__, record_p, "sample json:");

@@ -44,7 +44,7 @@ extern "C"
 #endif
 
 
-PATHOGENOMICS_SERVICE_LOCAL	const char *InsertGenotypeData (MongoTool *tool_p, json_t *values_p, PathogenomicsServiceData *data_p);
+PATHOGENOMICS_SERVICE_LOCAL	const char *InsertGenotypeData (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData *data_p);
 
 
 PATHOGENOMICS_SERVICE_LOCAL bool CheckGenotypeData (const LinkedList *headers_p, ServiceJob *job_p, PathogenomicsServiceData *data_p);

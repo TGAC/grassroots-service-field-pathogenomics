@@ -63,7 +63,7 @@ PATHOGENOMICS_SERVICE_LOCAL bool RefineLocationDataForGoogle (PathogenomicsServi
 PATHOGENOMICS_SERVICE_LOCAL bool RefineLocationDataForOpenCage (PathogenomicsServiceData *service_data_p, json_t *row_p, const json_t *raw_data_p, const char * const town_s, const char * const county_s);
 
 
-PATHOGENOMICS_SERVICE_LOCAL const char *InsertSampleData (MongoTool *tool_p, json_t *values_p, PathogenomicsServiceData *data_p);
+PATHOGENOMICS_SERVICE_LOCAL const char *InsertSampleData (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData *data_p);
 
 
 PATHOGENOMICS_SERVICE_LOCAL bool CheckSampleData (const LinkedList *headers_p, ServiceJob *job_p, PathogenomicsServiceData *data_p);

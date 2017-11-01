@@ -30,7 +30,7 @@
 #include "json_util.h"
 
 
-bool AddPublishDateToJSON (json_t *json_p, const char * const key_s, const bool add_flag)
+bool AddPublishDateToJSON (json_t *json_p, const char * const key_s, const uint32 stage_time, const bool add_flag)
 {
 	bool success_flag = false;
 	struct tm current_time;
@@ -41,16 +41,7 @@ bool AddPublishDateToJSON (json_t *json_p, const char * const key_s, const bool 
 
 			if (add_flag)
 				{
-					/* Set the "go live" date to be 1 month from now */
-					if (current_time.tm_mon == 11)
-						{
-							++ current_time.tm_year;
-							current_time.tm_mon = 0;
-						}
-					else
-						{
-							++ current_time.tm_mon;
-						}
+					AddIntervalToTime (&current_time, stage_time);
 				}
 
 			date_s = GetTimeAsString (&current_time);

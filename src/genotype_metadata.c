@@ -37,7 +37,7 @@ static const char * const GM_GENETIC_GROUP_S = "Genetic group";
 static const char * const GM_SAMPLE_NAME_S = "Sample name";
 
 
-const char *InsertGenotypeData (MongoTool *tool_p, json_t *values_p, PathogenomicsServiceData * UNUSED_PARAM (data_p))
+const char *InsertGenotypeData (MongoTool *tool_p, json_t *values_p,  const uint32 stage_time, PathogenomicsServiceData * UNUSED_PARAM (data_p))
 {
 	const char *error_s = NULL;
 	const char * const key_s = PG_ID_S;
@@ -71,7 +71,7 @@ const char *InsertGenotypeData (MongoTool *tool_p, json_t *values_p, Pathogenomi
 													hidden_flag = true;
 												}
 
-											if (AddPublishDateToJSON (doc_p, date_s, hidden_flag))
+											if (AddPublishDateToJSON (doc_p, date_s, stage_time, hidden_flag))
 												{
 													error_s = EasyInsertOrUpdateMongoData (tool_p, doc_p, PG_ID_S);
 												}

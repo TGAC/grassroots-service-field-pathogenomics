@@ -54,13 +54,15 @@ static NamedParameterType PGS_PREVIEW = { "Preview", PT_BOOLEAN };
 static NamedParameterType PGS_COLLECTION = { "Collection", PT_STRING };
 static NamedParameterType PGS_DELIMITER = { "Data delimiter", PT_CHAR };
 static NamedParameterType PGS_FILE = { "Upload", PT_TABLE};
+static NamedParameterType PGS_STAGE_TIME = { "Days to stage", PT_UNSIGNED_INT };
 
 
 static const char *s_data_names_pp [PD_NUM_TYPES];
 
 
-static const char s_default_column_delimiter =  '|';
+static const char S_DEFAULT_COLUMN_DELIMITER =  '|';
 
+static const uint32 S_DEFAULT_STAGE_TIME = 30;
 
 /*
  * STATIC PROTOTYPES
@@ -95,7 +97,7 @@ static void FreePathogenomicsServiceData (PathogenomicsServiceData *data_p);
 static bool ClosePathogenomicsService (Service *service_p);
 
 
-static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p, const PathogenomicsData collection_type, PathogenomicsServiceData *service_data_p);
+static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p, const PathogenomicsData collection_type, const uint32 stage_time, PathogenomicsServiceData *service_data_p);
 
 
 static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, json_t *data_p, const PathogenomicsData collection_type, PathogenomicsServiceData *service_data_p, const bool preview_flag);
@@ -420,31 +422,36 @@ static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Reso
 										{
 											if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_PREVIEW.npt_type, PGS_PREVIEW.npt_name_s, "Preview", "Ignore the live dates", def, PL_ADVANCED)) != NULL)
 												{
-													def.st_string_value_s = (char *) *s_data_names_pp;
+													def.st_long_value = S_DEFAULT_STAGE_TIME;
 
-													if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_COLLECTION.npt_type, PGS_COLLECTION.npt_name_s, "Collection", "The collection to act upon", def, PL_ALL)) != NULL)
+													if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_STAGE_TIME.npt_type, PGS_STAGE_TIME.npt_name_s, "Publish Delay", "Number of days before the data is publically accessible", def, PL_ADVANCED)) != NULL)
 														{
-															bool success_flag = true;
-															uint32 i;
+															def.st_string_value_s = (char *) *s_data_names_pp;
 
-															for (i = 0; i < PD_NUM_TYPES; ++ i)
+															if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_COLLECTION.npt_type, PGS_COLLECTION.npt_name_s, "Collection", "The collection to act upon", def, PL_ALL)) != NULL)
 																{
-																	def.st_string_value_s = (char *) s_data_names_pp [i];
+																	bool success_flag = true;
+																	uint32 i;
 
-																	if (!CreateAndAddParameterOptionToParameter (param_p, def, NULL))
+																	for (i = 0; i < PD_NUM_TYPES; ++ i)
 																		{
-																			i = PD_NUM_TYPES;
-																			success_flag = false;
-																		}
-																}
+																			def.st_string_value_s = (char *) s_data_names_pp [i];
 
-															if (success_flag)
-																{
-																	if (AddUploadParams (service_p -> se_data_p, params_p))
-																		{
-																			return params_p;
+																			if (!CreateAndAddParameterOptionToParameter (param_p, def, NULL))
+																				{
+																					i = PD_NUM_TYPES;
+																					success_flag = false;
+																				}
 																		}
 
+																	if (success_flag)
+																		{
+																			if (AddUploadParams (service_p -> se_data_p, params_p))
+																				{
+																					return params_p;
+																				}
+
+																		}
 																}
 														}
 												}
@@ -468,7 +475,7 @@ static bool AddUploadParams (ServiceData *data_p, ParameterSet *param_set_p)
 	SharedType def;
 	ParameterGroup *group_p = CreateAndAddParameterGroupToParameterSet ("Spreadsheet Import Parameters", NULL, false, data_p, param_set_p);
 
-	def.st_char_value = s_default_column_delimiter;
+	def.st_char_value = S_DEFAULT_COLUMN_DELIMITER;
 
 	if ((param_p = CreateAndAddParameterToParameterSet (data_p, param_set_p, group_p, PGS_DELIMITER.npt_type, false, PGS_DELIMITER.npt_name_s, "Delimiter", "The character delimiting columns", NULL, def, NULL, NULL, PL_ALL, NULL)) != NULL)
 		{
@@ -702,7 +709,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 									else
 										{
 											json_t *json_param_p = NULL;
-											char delimiter = s_default_column_delimiter;
+											char delimiter = S_DEFAULT_COLUMN_DELIMITER;
 											uint32 num_successes = 0;
 											bool free_json_param_flag = false;
 
@@ -779,13 +786,23 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 												{
 													uint32 size = 1;
 													OperationStatus status;
+													SharedType shared_type;
+													uint32 stage_time = S_DEFAULT_STAGE_TIME;
+
+													InitSharedType (&shared_type);
+
+													if (GetParameterValueFromParameterSet (param_set_p, PGS_STAGE_TIME.npt_name_s, &shared_type, true))
+														{
+															stage_time = shared_type.st_ulong_value;
+														}
+
 
 													if (json_is_array (json_param_p))
 														{
 															size = json_array_size (json_param_p);
 														}
 
-													num_successes = InsertData (tool_p, job_p, json_param_p, collection_type, data_p);
+													num_successes = InsertData (tool_p, job_p, json_param_p, collection_type, stage_time, data_p);
 
 
 													if (num_successes == 0)
@@ -1376,10 +1393,10 @@ bool AddErrorMessage (json_t *errors_p, const json_t *values_p, const size_t row
 */
 
 
-static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p, const PathogenomicsData collection_type, PathogenomicsServiceData *data_p)
+static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p, const PathogenomicsData collection_type, const uint32 stage_time, PathogenomicsServiceData *data_p)
 {
 	uint32 num_imports = 0;
-	const char *(*insert_fn) (MongoTool *tool_p, json_t *values_p, PathogenomicsServiceData *data_p) = NULL;
+	const char *(*insert_fn) (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData *data_p) = NULL;
 
 	#if PATHOGENOMICS_SERVICE_DEBUG >= STM_LEVEL_FINE
 	PrintJSONToLog (STM_LEVEL_FINE, __FILE__, __LINE__, values_p, "values_p: ");
@@ -1417,7 +1434,7 @@ static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p
 
 					json_array_foreach (values_p, i, value_p)
 						{
-							const char *error_s = insert_fn (tool_p, value_p, data_p);
+							const char *error_s = insert_fn (tool_p, value_p, stage_time, data_p);
 
 							if (error_s)
 								{
@@ -1431,7 +1448,7 @@ static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p
 				}
 			else
 				{
-					const char *error_s = insert_fn (tool_p, values_p, data_p);
+					const char *error_s = insert_fn (tool_p, values_p, stage_time, data_p);
 
 					if (error_s)
 						{

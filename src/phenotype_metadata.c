@@ -37,7 +37,7 @@ static const char * const PM_ISOLATE_S = "Isolate";
 static const char * const PM_HOST_S = "Host Variety";
 
 
-const char *InsertPhenotypeData (MongoTool *tool_p, json_t *values_p, PathogenomicsServiceData * UNUSED_PARAM (data_p))
+const char *InsertPhenotypeData (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData * UNUSED_PARAM (data_p))
 {
 	const char *error_s = NULL;
 	const char * const key_s = "Isolate";
@@ -63,7 +63,7 @@ const char *InsertPhenotypeData (MongoTool *tool_p, json_t *values_p, Pathogenom
 
 									if (date_s)
 										{
-											if (AddPublishDateToJSON (doc_p, date_s, true))
+											if (AddPublishDateToJSON (doc_p, date_s, stage_time, true))
 												{
 													error_s = EasyInsertOrUpdateMongoData (tool_p, doc_p, PG_UKCPVS_ID_S);
 												}
