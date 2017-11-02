@@ -494,7 +494,7 @@ bool GetLocationDataByGoogle (PathogenomicsServiceData *data_p, json_t *row_p, c
 
 			if (GetValidRealNumber (&value_s, &latitude, ","))
 				{
-					while (!isdigit (*value_s))
+					while ((!isdigit (*value_s)) && (*value_s != '-') && (*value_s != '+'))
 						{
 							++ value_s;
 						}
@@ -515,7 +515,23 @@ bool GetLocationDataByGoogle (PathogenomicsServiceData *data_p, json_t *row_p, c
 
 			if (match_flag)
 				{
-					got_location_flag = GetGeoLocationObjectForSchemaOrg (row_p, PG_LOCATION_S, latitude, longitude);
+					json_t *location_values_p = json_object ();
+
+					if (location_values_p)
+						{
+							if (GetGeoLocationObjectForSchemaOrg (location_values_p, PG_LOCATION_S, latitude, longitude))
+								{
+									got_location_flag = (json_object_set_new (row_p, PG_LOCATION_S, location_values_p) == 0);
+								}
+							else
+								{
+									PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to populate location object for %s with latitude %lf and longitude %lf", id_s, latitude, longitude);
+								}
+						}
+					else
+						{
+							PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to create empty location object for %s", id_s);
+						}
 
 					if (json_object_del (row_p, PG_GPS_S) != 0)
 						{
