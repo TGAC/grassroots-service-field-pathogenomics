@@ -105,6 +105,13 @@ struct /*PATHOGENOMICS_SERVICE_LOCAL*/ PathogenomicsServiceData
 	 * The URI of the root folder where any downloadable files is stored.
 	 */
 	const char *psd_files_download_root_uri_s;
+
+	/**
+	 * @private
+	 *
+	 * The default stage time, in days, before the filed sample data gets published
+	 */
+	int32 psd_default_stage_time;
 };
 
 

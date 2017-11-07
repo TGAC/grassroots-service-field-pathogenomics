@@ -54,7 +54,7 @@ static NamedParameterType PGS_PREVIEW = { "Preview", PT_BOOLEAN };
 static NamedParameterType PGS_COLLECTION = { "Collection", PT_STRING };
 static NamedParameterType PGS_DELIMITER = { "Data delimiter", PT_CHAR };
 static NamedParameterType PGS_FILE = { "Upload", PT_TABLE};
-static NamedParameterType PGS_STAGE_TIME = { "Days to stage", PT_UNSIGNED_INT };
+static NamedParameterType PGS_STAGE_TIME = { "Days to stage", PT_SIGNED_INT };
 
 
 static const char *s_data_names_pp [PD_NUM_TYPES];
@@ -62,7 +62,7 @@ static const char *s_data_names_pp [PD_NUM_TYPES];
 
 static const char S_DEFAULT_COLUMN_DELIMITER =  '|';
 
-static const uint32 S_DEFAULT_STAGE_TIME = 30;
+static const int32 S_DEFAULT_STAGE_TIME = 30;
 
 /*
  * STATIC PROTOTYPES
@@ -318,6 +318,8 @@ static bool ConfigurePathogenomicsService (PathogenomicsServiceData *data_p)
 
 		} /* if (data_p -> psd_database_s) */
 
+	GetJSONInteger (service_config_p, "stage_time", & (data_p -> psd_default_stage_time));
+
 	return success_flag;
 }
 
@@ -336,6 +338,7 @@ static PathogenomicsServiceData *AllocatePathogenomicsServiceData (void)
 					data_p -> psd_geocoder_fn = NULL;
 					data_p -> psd_geocoder_uri_s = NULL;
 					data_p -> psd_database_s = NULL;
+					data_p -> psd_default_stage_time = S_DEFAULT_STAGE_TIME;
 
 					memset (data_p -> psd_collection_ss, 0, PD_NUM_TYPES * sizeof (const char *));
 
@@ -422,7 +425,7 @@ static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Reso
 										{
 											if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_PREVIEW.npt_type, PGS_PREVIEW.npt_name_s, "Preview", "Ignore the live dates", def, PL_ADVANCED)) != NULL)
 												{
-													def.st_long_value = S_DEFAULT_STAGE_TIME;
+													def.st_long_value = ((PathogenomicsServiceData *) service_data_p) -> psd_default_stage_time;
 
 													if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_STAGE_TIME.npt_type, PGS_STAGE_TIME.npt_name_s, "Publish Delay", "Number of days before the data is publically accessible", def, PL_ADVANCED)) != NULL)
 														{
@@ -465,7 +468,6 @@ static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Reso
 
 	return NULL;
 }
-
 
 
 static bool AddUploadParams (ServiceData *data_p, ParameterSet *param_set_p)
@@ -787,13 +789,13 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 													uint32 size = 1;
 													OperationStatus status;
 													SharedType shared_type;
-													uint32 stage_time = S_DEFAULT_STAGE_TIME;
+													uint32 stage_time = data_p -> psd_default_stage_time;
 
 													InitSharedType (&shared_type);
 
 													if (GetParameterValueFromParameterSet (param_set_p, PGS_STAGE_TIME.npt_name_s, &shared_type, true))
 														{
-															stage_time = shared_type.st_ulong_value;
+															stage_time = shared_type.st_long_value;
 														}
 
 

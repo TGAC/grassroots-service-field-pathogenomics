@@ -30,7 +30,7 @@
 #include "json_util.h"
 
 
-bool AddPublishDateToJSON (json_t *json_p, const char * const key_s, const uint32 stage_time, const bool add_flag)
+bool AddPublishDateToJSON (json_t *json_p, const char * const key_s, const int32 stage_time, const bool add_flag)
 {
 	bool success_flag = false;
 	struct tm current_time;

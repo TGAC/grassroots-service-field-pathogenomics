@@ -40,7 +40,7 @@ extern "C"
 #endif
 
 
-PATHOGENOMICS_SERVICE_LOCAL bool AddPublishDateToJSON (json_t *json_p, const char * const key_s, const uint32 stage_time, const bool add_flag);
+PATHOGENOMICS_SERVICE_LOCAL bool AddPublishDateToJSON (json_t *json_p, const char * const key_s, const int32 stage_time, const bool add_flag);
 
 
 PATHOGENOMICS_SERVICE_LOCAL bool SetDateForSchemaOrg (json_t *values_p, const char * const key_s, const char * const iso_date_s);
