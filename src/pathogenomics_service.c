@@ -119,6 +119,8 @@ static json_t *CopyValidRecord (const size_t i, json_t *src_record_p);
 static json_t *FilterResultsByDate (json_t *src_results_p, const bool preview_flag, json_t *(convert_record_fn) (const size_t i, json_t *src_record_p));
 
 
+static ServiceMetadata *GetPathogenomicsServiceMetadata (Service *service_p);
+
 
 /*
  * API FUNCTIONS
@@ -191,7 +193,7 @@ static Service *GetPathogenomicsService (void)
 
 			if (data_p)
 				{
-					InitialiseService (service_p,
+					if (InitialiseService (service_p,
 														 GetPathogenomicsServiceName,
 														 GetPathogenomicsServiceDesciption,
 														 GetPathogenomicsServiceInformationUri,
@@ -203,17 +205,21 @@ static Service *GetPathogenomicsService (void)
 														 NULL,
 														 false,
 														 SY_SYNCHRONOUS,
-														 (ServiceData *) data_p);
-
-					if (ConfigurePathogenomicsService (data_p))
+														 (ServiceData *) data_p,
+														 GetPathogenomicsServiceMetadata))
 						{
-							*s_data_names_pp = PG_SAMPLE_S;
-							* (s_data_names_pp + 1) = PG_PHENOTYPE_S;
-							* (s_data_names_pp + 2) = PG_GENOTYPE_S;
-							* (s_data_names_pp + 3) = PG_FILES_S;
 
-							return service_p;
-						}
+							if (ConfigurePathogenomicsService (data_p))
+								{
+									*s_data_names_pp = PG_SAMPLE_S;
+									* (s_data_names_pp + 1) = PG_PHENOTYPE_S;
+									* (s_data_names_pp + 2) = PG_GENOTYPE_S;
+									* (s_data_names_pp + 3) = PG_FILES_S;
+
+									return service_p;
+								}
+
+						}		/* if (InitialiseService (.... */
 
 					FreePathogenomicsServiceData (data_p);
 				}
@@ -1543,4 +1549,181 @@ static ParameterSet *IsResourceForPathogenomicsService (Service * UNUSED_PARAM (
 {
 	return NULL;
 }
+
+
+static ServiceMetadata *GetPathogenomicsServiceMetadata (Service *service_p)
+{
+	const char *term_url_s = CONTEXT_PREFIX_EDAM_ONTOLOGY_S "topic_0625";
+	SchemaTerm *category_p = AllocateSchemaTerm (term_url_s, "Genotype and phenotype",
+		"The study of genetic constitution of a living entity, such as an individual, and organism, a cell and so on, "
+		"typically with respect to a particular observable phenotypic traits, or resources concerning such traits, which "
+		"might be an aspect of biochemistry, physiology, morphology, anatomy, development and so on.");
+
+	if (category_p)
+		{
+			SchemaTerm *subcategory_p;
+
+			term_url_s = CONTEXT_PREFIX_EDAM_ONTOLOGY_S "operation_0304";
+			subcategory_p = AllocateSchemaTerm (term_url_s, "Query and retrieval", "Search or query a data resource and retrieve entries and / or annotation.");
+
+			if (subcategory_p)
+				{
+					ServiceMetadata *metadata_p = AllocateServiceMetadata (category_p, subcategory_p);
+
+					if (metadata_p)
+						{
+							SchemaTerm *input_p;
+
+							term_url_s = CONTEXT_PREFIX_EDAM_ONTOLOGY_S "data_0968";
+							input_p = AllocateSchemaTerm (term_url_s, "Keyword",
+								"Boolean operators (AND, OR and NOT) and wildcard characters may be allowed. Keyword(s) or phrase(s) used (typically) for text-searching purposes.");
+
+							if (input_p)
+								{
+									if (AddSchemaTermToServiceMetadataInput (metadata_p, input_p))
+										{
+											SchemaTerm *output_p;
+
+											/* Place */
+											term_url_s = CONTEXT_PREFIX_SCHEMA_ORG_S "Place";
+											output_p = AllocateSchemaTerm (term_url_s, "Place", "Entities that have a somewhat fixed, physical extension.");
+
+											if (output_p)
+												{
+													if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p))
+														{
+															/* Date */
+															term_url_s = CONTEXT_PREFIX_SCHEMA_ORG_S "Date";
+															output_p = AllocateSchemaTerm (term_url_s, "Date", "A date value in ISO 8601 date format.");
+
+															if (output_p)
+																{
+																	if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p))
+																		{
+																			/* Pathogen */
+																			term_url_s = CONTEXT_PREFIX_EXPERIMENTAL_FACTOR_ONTOLOGY_S "EFO_0000643";
+																			output_p = AllocateSchemaTerm (term_url_s, "pathogen", "A biological agent that causes disease or illness to its host.");
+
+																			if (output_p)
+																				{
+																					if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p))
+																						{
+																							/* Phenotype */
+																							term_url_s = CONTEXT_PREFIX_EXPERIMENTAL_FACTOR_ONTOLOGY_S "EFO_0000651";
+																							output_p = AllocateSchemaTerm (term_url_s, "phenotype", "The observable form taken by some character (or group of characters) "
+																								"in an individual or an organism, excluding pathology and disease. The detectable outward manifestations of a specific genotype.");
+
+																							if (output_p)
+																								{
+																									if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p))
+																										{
+																											/* Genotype */
+																											term_url_s = CONTEXT_PREFIX_EXPERIMENTAL_FACTOR_ONTOLOGY_S "EFO_0000513";
+																											output_p = AllocateSchemaTerm (term_url_s, "genotype", "Information, making the distinction between the actual physical material "
+																												"(e.g. a cell) and the information about the genetic content (genotype).");
+
+																											if (output_p)
+																												{
+																													if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p))
+																														{
+																															return metadata_p;
+																														}		/* if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p)) */
+																													else
+																														{
+																															PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add output term %s to service metadata", term_url_s);
+																															FreeSchemaTerm (output_p);
+																														}
+
+																												}		/* if (output_p) */
+																											else
+																												{
+																													PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate output term %s for service metadata", term_url_s);
+																												}
+																										}		/* if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p)) */
+																									else
+																										{
+																											PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add output term %s to service metadata", term_url_s);
+																											FreeSchemaTerm (output_p);
+																										}
+
+																								}		/* if (output_p) */
+																							else
+																								{
+																									PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate output term %s for service metadata", term_url_s);
+																								}
+
+																						}		/* if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p)) */
+																					else
+																						{
+																							PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add output term %s to service metadata", term_url_s);
+																							FreeSchemaTerm (output_p);
+																						}
+
+																				}		/* if (output_p) */
+																			else
+																				{
+																					PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate output term %s for service metadata", term_url_s);
+																				}
+
+																		}		/* if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p)) */
+																	else
+																		{
+																			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add output term %s to service metadata", term_url_s);
+																			FreeSchemaTerm (output_p);
+																		}
+
+																}		/* if (output_p) */
+															else
+																{
+																	PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate output term %s for service metadata", term_url_s);
+																}
+
+
+														}		/* if (AddSchemaTermToServiceMetadataOutput (metadata_p, output_p)) */
+													else
+														{
+															PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add output term %s to service metadata", term_url_s);
+															FreeSchemaTerm (output_p);
+														}
+
+												}		/* if (output_p) */
+											else
+												{
+													PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate output term %s for service metadata", term_url_s);
+												}
+
+										}		/* if (AddSchemaTermToServiceMetadataInput (metadata_p, input_p)) */
+									else
+										{
+											PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add input term %s to service metadata", term_url_s);
+											FreeSchemaTerm (input_p);
+										}
+
+								}		/* if (input_p) */
+							else
+								{
+									PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate input term %s for service metadata", term_url_s);
+								}
+
+						}		/* if (metadata_p) */
+					else
+						{
+							PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate service metadata");
+						}
+
+				}		/* if (subcategory_p) */
+			else
+				{
+					PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate sub-category term %s for service metadata", term_url_s);
+				}
+
+		}		/* if (category_p) */
+	else
+		{
+			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate category term %s for service metadata", term_url_s);
+		}
+
+	return NULL;
+}
+
 
