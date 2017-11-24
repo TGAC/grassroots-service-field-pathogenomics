@@ -37,71 +37,124 @@ static const char * const PM_ISOLATE_S = "Isolate";
 static const char * const PM_HOST_S = "Host Variety";
 
 
+static int GetAndRemoveJSONKeyValuePair (json_t *doc_to_add_to_p, const char *add_key_s, json_t *doc_to_delete_from_p,  const char *delete_key_s);
+
+
+static int GetAndRemoveJSONKeyValuePair (json_t *doc_to_add_to_p, const char *add_key_s, json_t *doc_to_delete_from_p,  const char *delete_key_s)
+{
+	int res = -1;
+	const char *value_s = GetJSONString (doc_to_delete_from_p, delete_key_s);
+
+	if (value_s)
+		{
+			if (json_object_set_new (doc_to_add_to_p, add_key_s, json_string (value_s)) == 0)
+				{
+					if (json_object_del (doc_to_delete_from_p, delete_key_s) == 0)
+						{
+							res = 1;
+						}
+					else
+						{
+							PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to remove %s from old phenotype data", delete_key_s);
+						}
+				}
+			else
+				{
+					PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to add %s to new phenotype data", add_key_s);
+				}
+		}
+	else
+		{
+			res = 0;
+		}
+
+	return res;
+}
+
+
 const char *InsertPhenotypeData (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData * UNUSED_PARAM (data_p))
 {
 	const char *error_s = NULL;
-	const char * const key_s = "Isolate";
-	const char *isolate_s = GetJSONString (values_p, key_s);
 
-	if (isolate_s)
+	/* Create a json doc with  "phenotype"=values_p and PG_UKCPVS_ID_S=isolate_s */
+	json_t *doc_p = json_object ();
+
+	if (doc_p)
 		{
-			/* Create a json doc with  "phenotype"=values_p and PG_UKCPVS_ID_S=isolate_s */
-			json_t *doc_p = json_object ();
+			int ukcpvs_res = GetAndRemoveJSONKeyValuePair (doc_p, PG_UKCPVS_ID_S, values_p, "Isolate");
 
-			if (doc_p)
+			if (ukcpvs_res != -1)
 				{
-					if (json_object_set_new (doc_p, PG_UKCPVS_ID_S, json_string (isolate_s)) == 0)
+					int id_res = GetAndRemoveJSONKeyValuePair (doc_p, PG_ID_S, values_p, PG_ID_S);
+
+					if (id_res != -1)
 						{
-							if (json_object_del (values_p, key_s) != 0)
+							const char *primary_key_s = NULL;
+
+							if (id_res == 1)
 								{
-									PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to remove %s from phenotype", key_s);
+									primary_key_s = PG_ID_S;
+								}
+							else if (ukcpvs_res == 1)
+								{
+									primary_key_s = PG_UKCPVS_ID_S;
 								}
 
-							if (json_object_set (doc_p, PG_PHENOTYPE_S, values_p) == 0)
+							if (primary_key_s)
 								{
-									char *date_s = ConcatenateStrings (PG_PHENOTYPE_S, PG_LIVE_DATE_SUFFIX_S);
-
-									if (date_s)
+									if (json_object_set (doc_p, PG_PHENOTYPE_S, values_p) == 0)
 										{
-											if (AddPublishDateToJSON (doc_p, date_s, stage_time, true))
+											char *date_s = ConcatenateStrings (PG_PHENOTYPE_S, PG_LIVE_DATE_SUFFIX_S);
+
+											if (date_s)
 												{
-													error_s = EasyInsertOrUpdateMongoData (tool_p, doc_p, PG_UKCPVS_ID_S);
-												}
+													if (AddPublishDateToJSON (doc_p, date_s, stage_time, true))
+														{
+															error_s = EasyInsertOrUpdateMongoData (tool_p, doc_p, primary_key_s);
+														}
+													else
+														{
+															error_s = "Failed to add current date to phenotyope data";
+														}
+
+													FreeCopiedString (date_s);
+												}		/* if (date_s) */
 											else
 												{
-													error_s = "Failed to add current date to phenotyope data";
+													error_s = "Failed to make phenotype date key";
 												}
 
-											FreeCopiedString (date_s);
-										}
+										}		/* if (json_object_set (doc_p, PG_PHENOTYPE_S, values_p) == 0) */
 									else
 										{
-											error_s = "Failed to make phenotype date key";
+											error_s = "Failed to add values to new phenotype data";
 										}
-								}
+
+								}		/* if (primary_key_s) */
 							else
 								{
-									error_s = "Failed to add values to new phenotype data";
+									error_s = "Failed to get primary key from phenotype values";
 								}
 
-						}		/* if (json_object_set_new (doc_p, PG_UKCPVS_ID_S, json_string (isolate_s)) == 0) */
+						}		/* if (id_res != -1) */
 					else
 						{
-							error_s = "Failed to add id to new phenotype data";
+							error_s = "Failed to move ID key to top-level phenotype data";
 						}
 
-					WipeJSON (doc_p);
-				}		/* if (doc_p) */
+				}		/* if (ukcpvs_res != -1) */
 			else
 				{
-					error_s = "Failed to create phenotype data to add";
+					error_s = "Failed to move UKCPVS ID key to top-level phenotype data";
 				}
 
-		}		/* if (isolate_s) */
+			WipeJSON (doc_p);
+		}		/* if (doc_p) */
 	else
 		{
-			error_s = "Failed to get Isolate value";
+			error_s = "Failed to create phenotype data to add";
 		}
+
 
 	return error_s;
 }
