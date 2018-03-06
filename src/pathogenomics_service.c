@@ -148,18 +148,10 @@ ServicesArray *GetServices (UserDetails *user_p)
 }
 
 
-
-void ReleaseService (Service *service_p)
+void ReleaseServices (ServicesArray *services_p)
 {
-	ClosePathogenomicsService (service_p);
-	FreeMemory (service_p);
+	FreeServicesArray (services_p);
 }
-
-
-/*
- * STATIC FUNCTIONS
- */
-
 
 
 static json_t *GetPathogenomicsServiceResults (Service *service_p, const uuid_t job_id)
