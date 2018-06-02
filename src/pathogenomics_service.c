@@ -233,82 +233,18 @@ static bool ConfigurePathogenomicsService (PathogenomicsServiceData *data_p)
 
 	if (data_p -> psd_database_s)
 		{
-			const char *value_s = GetJSONString (service_config_p, "default_geocoder");
 
-			data_p -> psd_geocoder_uri_s = NULL;
-
-			if (value_s)
+			if ((* (data_p -> psd_collection_ss + PD_SAMPLE) = GetJSONString (service_config_p, "samples_collection")) != NULL)
 				{
-					json_t *geocoders_p = json_object_get (service_config_p, "geocoders");
-
-					if (geocoders_p)
+					if ((* (data_p -> psd_collection_ss + PD_PHENOTYPE) = GetJSONString (service_config_p, "phenotypes_collection")) != NULL)
 						{
-							data_p -> psd_geocoder_uri_s = NULL;
-
-							if (json_is_array (geocoders_p))
+							if ((* (data_p -> psd_collection_ss + PD_GENOTYPE) = GetJSONString (service_config_p, "genotypes_collection")) != NULL)
 								{
-									const size_t size = json_array_size (geocoders_p);
-									size_t i = 0;
-
-									while (i < size)
+									if ((* (data_p -> psd_collection_ss + PD_FILES) = GetJSONString (service_config_p, "files_collection")) != NULL)
 										{
-											json_t *geocoder_p = json_array_get (geocoders_p, i);
-											const char *name_s = GetJSONString (geocoder_p, "name");
+											data_p -> psd_files_download_root_uri_s = GetJSONString (service_config_p, "files_host");
 
-											if (name_s && (strcmp (name_s, value_s) == 0))
-												{
-													data_p -> psd_geocoder_uri_s = GetJSONString (geocoder_p, "uri");
-													i = size;
-												}
-											else
-												{
-													++ i;
-												}
-										}
-								}
-							else
-								{
-									const char *name_s = GetJSONString (geocoders_p, "name");
-
-									if (name_s && (strcmp (name_s, value_s) == 0))
-										{
-											data_p -> psd_geocoder_uri_s = GetJSONString (geocoders_p, "uri");
-										}
-								}
-
-							if (data_p -> psd_geocoder_uri_s)
-								{
-									if (strcmp (value_s, "google") == 0)
-										{
-											data_p -> psd_geocoder_fn = GetLocationDataByGoogle;
-										}
-									else if (strcmp (value_s, "opencage") == 0)
-										{
-											data_p -> psd_geocoder_fn = GetLocationDataByOpenCage;
-										}
-									else
-										{
-											data_p -> psd_geocoder_fn = NULL;
-										}
-								}
-						}
-				}		/* if (value_s) */
-
-			if (data_p -> psd_geocoder_fn)
-				{
-
-					if ((* (data_p -> psd_collection_ss + PD_SAMPLE) = GetJSONString (service_config_p, "samples_collection")) != NULL)
-						{
-							if ((* (data_p -> psd_collection_ss + PD_PHENOTYPE) = GetJSONString (service_config_p, "phenotypes_collection")) != NULL)
-								{
-									if ((* (data_p -> psd_collection_ss + PD_GENOTYPE) = GetJSONString (service_config_p, "genotypes_collection")) != NULL)
-										{
-											if ((* (data_p -> psd_collection_ss + PD_FILES) = GetJSONString (service_config_p, "files_collection")) != NULL)
-												{
-													data_p -> psd_files_download_root_uri_s = GetJSONString (service_config_p, "files_host");
-
-													success_flag = true;
-												}
+											success_flag = true;
 										}
 								}
 						}
@@ -333,8 +269,6 @@ static PathogenomicsServiceData *AllocatePathogenomicsServiceData (void)
 			if (data_p)
 				{
 					data_p -> psd_tool_p = tool_p;
-					data_p -> psd_geocoder_fn = NULL;
-					data_p -> psd_geocoder_uri_s = NULL;
 					data_p -> psd_database_s = NULL;
 					data_p -> psd_default_stage_time = S_DEFAULT_STAGE_TIME;
 

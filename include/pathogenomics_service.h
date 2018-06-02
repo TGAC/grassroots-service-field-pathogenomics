@@ -204,45 +204,6 @@ PATHOGENOMICS_PREFIX const char *PG_COMPANY_S PATHOGENOMICS_VAL ("Company");
 PATHOGENOMICS_PREFIX const char *PG_ADDRESS_S PATHOGENOMICS_VAL ("Address");
 
 
-/**
- * The key for the location object for a given record.
- *
- * @ingroup pathogenomics_service
- */
-PATHOGENOMICS_PREFIX const char *PG_LOCATION_S PATHOGENOMICS_VAL ("location");
-
-
-/**
- * The key for the latitude of for a location object for a given record.
- *
- * @ingroup pathogenomics_service
- */
-PATHOGENOMICS_PREFIX const char *PG_LATITUDE_S PATHOGENOMICS_VAL ("latitude");
-
-
-/**
- * The key for the longitude of for a location object for a given record.
- *
- * @ingroup pathogenomics_service
- */
-PATHOGENOMICS_PREFIX const char *PG_LONGITUDE_S PATHOGENOMICS_VAL ("longitude");
-
-
-/**
- * The key for the north-eastern bounds for the location object for a given record.
- *
- * @ingroup pathogenomics_service
- */
-PATHOGENOMICS_PREFIX const char *PG_NORTH_EAST_LOCATION_S PATHOGENOMICS_VAL ("north_east_bound");
-
-
-/**
- * The key for the south-western bounds for the location object for a given record.
- *
- * @ingroup pathogenomics_service
- */
-PATHOGENOMICS_PREFIX const char *PG_SOUTH_WEST_LOCATION_S PATHOGENOMICS_VAL ("south_west_bound");
-
 
 /**
  * The flag used to determine whether to ignore the publication date for a given sample.

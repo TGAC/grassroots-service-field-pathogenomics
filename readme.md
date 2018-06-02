@@ -6,7 +6,7 @@ The Field Pathogenomics service is for tracking the geographical spread of patho
 
 To build this service, you need the [grassroots core](https://github.com/TGAC/grassroots-core) and [grassroots build config](https://github.com/TGAC/grassroots-build-config) installed and configured. 
 
-The files to build the SamTools service are in the ```build/<platform>``` directory. 
+The files to build the Field Pathogenomics service are in the ```build/<platform>``` directory. 
 
 ### Linux
 

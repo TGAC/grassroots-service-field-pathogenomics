@@ -41,10 +41,8 @@ extern "C"
 
 
 
-PATHOGENOMICS_SERVICE_LOCAL bool GetLocationDataByGoogle (PathogenomicsServiceData *data_p, json_t *row_p, const char * const id_s);
+PATHOGENOMICS_SERVICE_LOCAL bool GetLocationData (PathogenomicsServiceData *data_p, json_t *row_p, const char * const id_s);
 
-
-PATHOGENOMICS_SERVICE_LOCAL bool GetLocationDataByOpenCage (PathogenomicsServiceData *data_p, json_t *row_p, const char * const id_s);
 
 
 /**
@@ -57,7 +55,6 @@ PATHOGENOMICS_SERVICE_LOCAL bool GetLocationDataByOpenCage (PathogenomicsService
 PATHOGENOMICS_SERVICE_LOCAL bool ConvertDate (json_t *row_p);
 
 
-PATHOGENOMICS_SERVICE_LOCAL bool RefineLocationDataForGoogle (PathogenomicsServiceData *service_data_p, json_t *row_p, const json_t *raw_data_p, const char * const town_s, const char * const county_s);
 
 
 PATHOGENOMICS_SERVICE_LOCAL bool RefineLocationDataForOpenCage (PathogenomicsServiceData *service_data_p, json_t *row_p, const json_t *raw_data_p, const char * const town_s, const char * const county_s);

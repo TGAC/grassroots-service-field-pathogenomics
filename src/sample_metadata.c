@@ -28,7 +28,8 @@
 #include "json_tools.h"
 #include "math_utils.h"
 #include "pathogenomics_utils.h"
-
+#include "address.h"
+#include "geocoder_util.h"
 
 
 #ifdef _DEBUG
@@ -38,7 +39,7 @@
 #endif
 
 
-static bool FillInPathogenomicsFromGoogleData (const json_t *google_result_p, json_t *doc_p);
+
 
 static bool ReplacePathogen (json_t *data_p);
 
@@ -46,9 +47,6 @@ static bool ParseCollector (json_t *values_p);
 
 static bool ParseCompany (json_t *values_p);
 
-static bool ParseAddressForSchemaOrg (json_t *values_p, const char * const town_s, const char * const county_s, const char * const country_s, const char * const postcode_s);
-
-static bool AddValidJSONField (json_t *json_p, const char *key_s, const char *value_s);
 
 static bool ConvertToSchemaOrgRepresentation (json_t *values_p, const char * const input_key_s, const char * const type_s, const char * const output_subkey_s);
 
@@ -443,35 +441,9 @@ bool ConvertDate (json_t *row_p)
 }
 
 
-bool GetGeoLocationObjectForSchemaOrg (json_t *parent_p, const char *key_s, const double latitude, const double longitude)
-{
-	bool success_flag = false;
-	json_t *child_p = json_object ();
-
-	if (child_p)
-		{
-			if ((json_object_set_new (child_p, "@type", json_string ("GeoCoordinates")) == 0) &&
-					(json_object_set_new (child_p, PG_LATITUDE_S, json_real (latitude)) == 0) &&
-					(json_object_set_new (child_p, PG_LONGITUDE_S, json_real (longitude)) == 0))
-				{
-					if (json_object_set_new (parent_p, key_s, child_p) == 0)
-						{
-							success_flag = true;
-
-						}
-				}
-
-			if (!success_flag)
-				{
-					WipeJSON (child_p);
-				}
-		}		/* if (child_p) */
-
-	return success_flag;
-}
 
 
-bool GetLocationDataByGoogle (PathogenomicsServiceData *data_p, json_t *row_p, const char * const id_s)
+bool GetLocationData (PathogenomicsServiceData *data_p, json_t *row_p, const char * const id_s)
 {
 	bool got_location_flag = false;
 	const char *town_s = GetJSONString (row_p, PG_TOWN_S);
@@ -481,397 +453,25 @@ bool GetLocationDataByGoogle (PathogenomicsServiceData *data_p, json_t *row_p, c
 	const char *gps_s = GetJSONString (row_p, PG_GPS_S);
 	const char *country_code_s = NULL;
 
+	Address *address_p = AllocateAddress (town_s, county_s, country_s, postcode_s, country_code_s, gps_s);
 
-	if (gps_s)
+	if (address_p)
 		{
-			/*
-			 * Start to try and scan the coords as decimals
-			 */
-			const char *value_s = gps_s;
-			double latitude;
-			double longitude;
-			bool match_flag = false;
-
-			if (GetValidRealNumber (&value_s, &latitude, ","))
+			if (DetermineGPSLocationForAddress (address_p))
 				{
-					while ((!isdigit (*value_s)) && (*value_s != '-') && (*value_s != '+'))
-						{
-							++ value_s;
-						}
-
-					if (*value_s != '\0')
-						{
-							if (GetValidRealNumber (&value_s, &longitude, ","))
-								{
-									while ((isspace (*value_s)) && (*value_s != '\0'))
-										{
-											++ value_s;
-										}
-
-									match_flag = (*value_s == '\0');
-								}
-						}
+					/*
+					 * The address now has GPS coordinates so we need to add the
+					 * appropriate location data to the JSON object.
+					 */
 				}
 
-			if (match_flag)
-				{
-					json_t *location_values_p = json_object ();
-
-					if (location_values_p)
-						{
-							if (GetGeoLocationObjectForSchemaOrg (location_values_p, PG_LOCATION_S, latitude, longitude))
-								{
-									got_location_flag = (json_object_set_new (row_p, PG_LOCATION_S, location_values_p) == 0);
-								}
-							else
-								{
-									PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to populate location object for %s with latitude %lf and longitude %lf", id_s, latitude, longitude);
-								}
-						}
-					else
-						{
-							PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to create empty location object for %s", id_s);
-						}
-
-					if (json_object_del (row_p, PG_GPS_S) != 0)
-						{
-							PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to remove raw gps coords from %s", id_s);
-						}
-				}
+			FreeAddress (address_p);
 		}
-	else
-		{
-			ByteBuffer *buffer_p = AllocateByteBuffer (1024);
-
-			if (buffer_p)
-				{
-					if (AppendStringToByteBuffer (buffer_p, data_p -> psd_geocoder_uri_s))
-						{
-							bool success_flag = true;
-							bool added_query_flag = false;
-
-							/* Replace UK entries with GB */
-							if (country_s)
-								{
-									if (strcmp (country_s, "UK") == 0)
-										{
-											country_s = "GB";
-										}
-								}
-
-							/* post code */
-							if (postcode_s)
-								{
-									const char *value_s = postcode_s;
-
-									/* remove and leading spaces */
-									while (isspace (*value_s))
-										{
-											++ value_s;
-										}
-
-									success_flag = (*value_s != '\0') && AppendStringsToByteBuffer (buffer_p, "&components=postal_code:", value_s, NULL);
-
-									/* country */
-									if (success_flag)
-										{
-											if (country_s)
-												{
-													if (IsValidCountryCode (country_s))
-														{
-															country_code_s = country_s;
-														}
-													else
-														{
-															country_code_s = GetCountryCodeFromName (country_s);
-														}
-
-													if (country_code_s)
-														{
-															success_flag = AppendStringsToByteBuffer (buffer_p, "|country:", country_code_s, NULL);
-														}
-
-
-												}
-
-										}		/* if (success_flag) */
-
-								}		/* if (postcode_s) */
-							else
-								{
-									/* town */
-									if (town_s)
-										{
-											success_flag = AppendStringsToByteBuffer (buffer_p, "&address=", town_s, NULL);
-											added_query_flag = true;
-										}
-
-									/* county */
-									if (success_flag)
-										{
-											county_s = GetJSONString (row_p, PG_COUNTY_S);
-
-											if (county_s)
-												{
-													if (added_query_flag)
-														{
-															success_flag = AppendStringsToByteBuffer (buffer_p, ",%20", county_s, NULL);
-														}
-													else
-														{
-															success_flag = AppendStringsToByteBuffer (buffer_p, "&address=", county_s, NULL);
-															added_query_flag = true;
-														}
-												}		/* if (county_s) */
-
-										}		/* if (success_flag) */
-
-
-									/* country */
-									if (success_flag)
-										{
-											if (country_s)
-												{
-													if (IsValidCountryCode (country_s))
-														{
-															country_code_s = country_s;
-														}
-													else
-														{
-															country_code_s = GetCountryCodeFromName (country_s);
-														}
-
-													if (country_code_s)
-														{
-															success_flag = AppendStringsToByteBuffer (buffer_p, "&components=country:", country_code_s, NULL);
-														}
-												}
-										}
-
-								}
-
-							if (success_flag)
-								{
-									CurlTool *curl_tool_p = AllocateCurlTool (CM_MEMORY);
-
-									if (curl_tool_p)
-										{
-											const char *uri_s = NULL;
-
-											ReplaceCharsInByteBuffer (buffer_p, ' ', '+');
-											uri_s = GetByteBufferData (buffer_p);
-											PrintLog (STM_LEVEL_INFO, __FILE__, __LINE__, "uri for %s is \"%s\"\n", id_s, uri_s);
-
-											if (SetUriForCurlTool (curl_tool_p, uri_s))
-												{
-													CURLcode c = RunCurlTool (curl_tool_p);
-
-													if (c == CURLE_OK)
-														{
-															const char *response_s = GetCurlToolData (curl_tool_p);
-
-															if (response_s)
-																{
-																	json_error_t error;
-																	json_t *raw_res_p = NULL;
-
-																	PrintLog (STM_LEVEL_INFO, __FILE__, __LINE__, "geo response for %s\n%s\n", uri_s, response_s);
-
-																	raw_res_p = json_loads (response_s, 0, &error);
-
-																	if (raw_res_p)
-																		{
-																			PrintJSONToLog (STM_LEVEL_FINE, __FILE__, __LINE__, raw_res_p, "raw: ");
-																			got_location_flag = RefineLocationDataForGoogle (data_p, row_p, raw_res_p, town_s, county_s);
-
-																			WipeJSON (raw_res_p);
-																		}
-																	else
-																		{
-
-																		}
-																}
-														}
-													else
-														{
-
-														}
-												}
-
-
-											FreeCurlTool (curl_tool_p);
-										}		/* if (curl_tool_p) */
-
-								}
-
-						}		/* if (AppendStringToByteBuffer (buffer_p, data_p -> msd_geocoding_uri_s)) */
-
-					FreeByteBuffer (buffer_p);
-				}		/* if (buffer_p) */
-
-		}
-
-
-	ParseAddressForSchemaOrg (row_p, town_s, county_s, country_code_s, postcode_s);
-
-	json_object_del (row_p, PG_TOWN_S);
-	json_object_del (row_p, PG_COUNTY_S);
-	json_object_del (row_p, PG_COUNTRY_S);
-	json_object_del (row_p, PG_POSTCODE_S);
-	json_object_del (row_p, PG_GPS_S);
 
 
 	return got_location_flag;
 }
 
-
-bool GetLocationDataByOpenCage (PathogenomicsServiceData *data_p, json_t *row_p, const char * const id_s)
-{
-	bool got_location_flag = false;
-	json_t *res_p = NULL;
-
-	const char *gps_s = GetJSONString (row_p, PG_GPS_S);
-
-	if (gps_s)
-		{
-
-		}
-	else
-		{
-			ByteBuffer *buffer_p = AllocateByteBuffer (1024);
-
-			if (buffer_p)
-				{
-					if (AppendStringToByteBuffer (buffer_p, data_p -> psd_geocoder_uri_s))
-						{
-							const char *town_s = GetJSONString (row_p, PG_TOWN_S);
-							const char *county_s = NULL;
-							const char *country_code_s = NULL;
-							bool success_flag = true;
-							bool added_query_flag = false;
-
-							/* town */
-							if (town_s)
-								{
-									success_flag = AppendStringsToByteBuffer (buffer_p, "&query=", town_s, NULL);
-									added_query_flag = true;
-								}
-
-							/* county */
-							if (success_flag)
-								{
-									county_s = GetJSONString (row_p, PG_COUNTY_S);
-
-									if (county_s)
-										{
-											if (added_query_flag)
-												{
-													success_flag = AppendStringsToByteBuffer (buffer_p, ",%20", county_s, NULL);
-												}
-											else
-												{
-													success_flag = AppendStringsToByteBuffer (buffer_p, "&query=", county_s, NULL);
-													added_query_flag = true;
-												}
-										}		/* if (county_s) */
-
-								}		/* if (success_flag) */
-
-
-							/* country */
-							if (success_flag)
-								{
-									const char *value_s = GetJSONString (row_p, PG_COUNTRY_S);
-
-									if (value_s)
-										{
-											if (IsValidCountryCode (value_s))
-												{
-													country_code_s = value_s;
-												}
-											else
-												{
-													country_code_s = GetCountryCodeFromName (value_s);
-												}
-
-											if (country_code_s)
-												{
-													success_flag = AppendStringsToByteBuffer (buffer_p, "&countrycode=", country_code_s, NULL);
-												}
-
-										}
-
-								}		/* if (success_flag) */
-
-
-							if (success_flag)
-								{
-									CurlTool *curl_tool_p = AllocateCurlTool (CM_MEMORY);
-
-									if (curl_tool_p)
-										{
-											const char *uri_s = GetByteBufferData (buffer_p);
-
-											if (SetUriForCurlTool (curl_tool_p, uri_s))
-												{
-													CURLcode c = RunCurlTool (curl_tool_p);
-
-													if (c == CURLE_OK)
-														{
-															const char *response_s = GetCurlToolData (curl_tool_p);
-
-															if (response_s)
-																{
-																	json_error_t error;
-																	json_t *raw_res_p = NULL;
-
-																	PrintLog (STM_LEVEL_INFO, __FILE__, __LINE__, "geo response for %s\n%s\n", uri_s, response_s);
-
-																	raw_res_p = json_loads (response_s, 0, &error);
-
-																	if (raw_res_p)
-																		{
-																			char *dump_s = json_dumps (res_p, JSON_INDENT (2) | JSON_PRESERVE_ORDER);
-
-																			PrintLog (STM_LEVEL_INFO, __FILE__, __LINE__, "json:\n%s\n", dump_s);
-																			free (dump_s);
-
-																			/*
-																			res_p = data_p -> msd_refine_location_fn (data_p, raw_res_p, town_s, county_s, country_code_s);
-
-																			WipeJSON (raw_res_p);
-																			 */
-
-																			/** TODO */
-																			res_p = raw_res_p;
-																		}
-																	else
-																		{
-
-																		}
-																}
-														}
-													else
-														{
-
-														}
-												}
-
-
-											FreeCurlTool (curl_tool_p);
-										}		/* if (curl_tool_p) */
-
-								}
-
-						}		/* if (AppendStringToByteBuffer (buffer_p, data_p -> msd_geocoding_uri_s)) */
-
-					FreeByteBuffer (buffer_p);
-				}		/* if (buffer_p) */
-
-		}
-
-	return got_location_flag;
-}
 
 
 /*
@@ -1044,48 +644,7 @@ bool GetLocationDataByOpenCage (PathogenomicsServiceData *data_p, json_t *row_p,
 }
  */
 
-bool RefineLocationDataForGoogle (PathogenomicsServiceData *service_data_p, json_t *row_p, const json_t *raw_data_p, const char * const town_s, const char * const county_s)
-{
-	bool success_flag = false;
-	const json_t *results_p = json_object_get (raw_data_p, "results");
 
-	if (results_p)
-		{
-			if (json_is_array (results_p))
-				{
-					const size_t size = json_array_size (results_p);
-					size_t i = 0;
-
-					while ((i < size) && (!success_flag))
-						{
-							const json_t *result_p = json_array_get (results_p, i);
-
-							if (FillInPathogenomicsFromGoogleData (result_p, row_p))
-								{
-									success_flag = true;
-								}
-							else
-								{
-									PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, result_p, "FillInPathogenomicsFromGoogleData failed");
-								}
-
-							++ i;
-						}		/* while (i < size) */
-
-				}		/* if (json_is_array (results_p)) */
-			else
-				{
-					PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, results_p, "results is not an array");
-				}
-
-		}		/* if (results_p) */
-	else
-		{
-			PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, raw_data_p, "Failed to get results array");
-		}
-
-	return success_flag;
-}
 
 
 
@@ -1094,70 +653,6 @@ bool RefineLocationDataForGoogle (PathogenomicsServiceData *service_data_p, json
 /****************************************/
 
 
-static bool AddValidJSONField (json_t *json_p, const char *key_s, const char *value_s)
-{
-	bool success_flag = true;
-
-	if (key_s && value_s)
-		{
-			success_flag = (json_object_set_new (json_p, key_s, json_string (value_s)) == 0);
-		}
-
-	return success_flag;
-}
-
-
-static bool ParseAddressForSchemaOrg (json_t *values_p, const char * const town_s, const char * const county_s, const char * const country_s, const char * const postcode_s)
-{
-	bool success_flag = false;
-
-	if (town_s || county_s || country_s || postcode_s)
-		{
-			json_t *postal_address_p = json_object ();
-
-			success_flag = false;
-
-			if (postal_address_p)
-				{
-					if (json_object_set_new (postal_address_p, "@type", json_string ("PostalAddress")) == 0)
-						{
-							if (AddValidJSONField (postal_address_p, "addressLocality", town_s))
-								{
-									success_flag = true;
-								}
-
-							if (AddValidJSONField (postal_address_p, "addressRegion", county_s))
-								{
-									success_flag = true;
-								}
-
-							if (AddValidJSONField (postal_address_p, "addressCountry", country_s))
-								{
-									success_flag = true;
-								}
-
-							if (AddValidJSONField (postal_address_p, "postalCode", postcode_s))
-								{
-									success_flag = true;
-								}
-
-							if (success_flag)
-								{
-									success_flag = (json_object_set_new (values_p, PG_ADDRESS_S, postal_address_p) == 0);
-								}
-						}
-
-					if (!success_flag)
-						{
-							WipeJSON (postal_address_p);
-						}
-				}
-
-		}		/* if (town_s || county_s || country_s || postcode_s) */
-
-
-	return success_flag;
-}
 
 
 
@@ -1256,7 +751,7 @@ static const char *PrepareSampleData (MongoTool *tool_p, json_t *values_p, Patho
 		{
 			if (ConvertDate (values_p))
 				{
-					if (GetLocationData (tool_p, values_p, data_p, pathogenomics_id_s))
+					if (GetLocationData (data_p, values_p, pathogenomics_id_s))
 						{
 							/* convert YR/SR/LR to yellow, stem or leaf rust */
 							if (ReplacePathogen (values_p))
@@ -1359,93 +854,6 @@ static const char *MergeData (MongoTool *tool_p, json_t *values_p, const char * 
 
 
 
-static bool FillInPathogenomicsFromGoogleData (const json_t *google_result_p, json_t *doc_p)
-{
-	bool success_flag = false;
-	json_t *location_values_p = json_object ();
-
-	if (location_values_p)
-		{
-			const json_t *geometry_p = json_object_get (google_result_p, "geometry");
-
-			if (geometry_p)
-				{
-					const json_t *location_p = json_object_get (geometry_p, "location");
-					const char * const LATITUDE_KEY_S = "lat";
-					const char * const LONGITUDE_KEY_S = "lng";
-
-#if SAMPLE_METADATA_DEBUG >= STM_LEVEL_FINE
-					PrintJSONToLog (STM_LEVEL_FINE, __FILE__, __LINE__, geometry_p, "geometry_p: ");
-#endif
-
-					if (location_p)
-						{
-							const json_t *viewport_p = json_object_get (geometry_p, "viewport");
-							double latitude;
-							double longitude;
-
-							if (GetJSONReal (location_p, LATITUDE_KEY_S, &latitude))
-								{
-									if (GetJSONReal (location_p, LONGITUDE_KEY_S, &longitude))
-										{
-											success_flag = GetGeoLocationObjectForSchemaOrg (location_values_p, PG_LOCATION_S, latitude, longitude);
-										}
-								}
-
-							if (viewport_p)
-								{
-									const json_t *corner_p = json_object_get (viewport_p, "northeast");
-
-									if (corner_p)
-										{
-											if (GetJSONReal (corner_p, LATITUDE_KEY_S, &latitude))
-												{
-													if (GetJSONReal (corner_p, LONGITUDE_KEY_S, &longitude))
-														{
-															if (!GetGeoLocationObjectForSchemaOrg (location_values_p, PG_NORTH_EAST_LOCATION_S, latitude, longitude))
-																{
-																	PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to set north east location from %lf %lf ", latitude, longitude);
-																}
-														}
-												}
-										}
-
-									corner_p = json_object_get (viewport_p, "southwest");
-
-									if (corner_p)
-										{
-											if (GetJSONReal (corner_p, LATITUDE_KEY_S, &latitude))
-												{
-													if (GetJSONReal (corner_p, LONGITUDE_KEY_S, &longitude))
-														{
-															if (!GetGeoLocationObjectForSchemaOrg (location_values_p, PG_SOUTH_WEST_LOCATION_S, latitude, longitude))
-																{
-																	PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to set south west location from %lf %lf ", latitude, longitude);
-																}
-														}
-												}
-										}
-								}		/* if (viewport_p) */
-
-						}		/* if (location_p) */
-
-				}		/* if (geometry_p) */
-
-			if (success_flag)
-				{
-					success_flag = (json_object_set_new (doc_p, PG_LOCATION_S, location_values_p) == 0);
-				}
-
-			if (!success_flag)
-				{
-					WipeJSON (location_values_p);
-				}
-
-		}		/* if (location_values_p) */
-
-
-	return success_flag;
-}
 
 
 
