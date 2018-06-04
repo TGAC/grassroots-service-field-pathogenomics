@@ -443,7 +443,7 @@ bool ConvertDate (json_t *row_p)
 
 
 
-bool GetLocationData (PathogenomicsServiceData *data_p, json_t *row_p, const char * const id_s)
+bool GetLocationData (json_t *row_p, const char * const id_s)
 {
 	bool got_location_flag = false;
 	const char *town_s = GetJSONString (row_p, PG_TOWN_S);
@@ -457,17 +457,33 @@ bool GetLocationData (PathogenomicsServiceData *data_p, json_t *row_p, const cha
 
 	if (address_p)
 		{
-			if (DetermineGPSLocationForAddress (address_p))
+			if (DetermineGPSLocationForAddress (address_p, NULL))
 				{
 					/*
 					 * The address now has GPS coordinates so we need to add the
 					 * appropriate location data to the JSON object.
 					 */
+					if (ConvertAddressToJSON (address_p, row_p))
+						{
+							got_location_flag = true;
+						}
+					else
+						{
+							PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "ConvertAddressToJSON failed for \"%s\"", id_s);
+						}
+
+				}		/* if (DetermineGPSLocationForAddress (address_p)) */
+			else
+				{
+					PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "DetermineGPSLocationForAddress failed for \"%s\"", id_s);
 				}
 
 			FreeAddress (address_p);
+		}		/* if (address_p) */
+	else
+		{
+			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate Address for \"%s\"", id_s);
 		}
-
 
 	return got_location_flag;
 }
@@ -751,7 +767,7 @@ static const char *PrepareSampleData (MongoTool *tool_p, json_t *values_p, Patho
 		{
 			if (ConvertDate (values_p))
 				{
-					if (GetLocationData (data_p, values_p, pathogenomics_id_s))
+					if (GetLocationData (values_p, pathogenomics_id_s))
 						{
 							/* convert YR/SR/LR to yellow, stem or leaf rust */
 							if (ReplacePathogen (values_p))

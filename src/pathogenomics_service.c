@@ -841,6 +841,10 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 														}
 													 */
 												}		/* if (json_param_p) */
+											else
+												{
+													SetServiceJobStatus (job_p, OS_FAILED);
+												}
 
 										}		/* if (param_p && (param_p -> pa_type == PT_BOOLEAN) && (param_p -> pa_current_value.st_boolean_value == true)) else */
 

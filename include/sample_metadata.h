@@ -41,7 +41,7 @@ extern "C"
 
 
 
-PATHOGENOMICS_SERVICE_LOCAL bool GetLocationData (PathogenomicsServiceData *data_p, json_t *row_p, const char * const id_s);
+PATHOGENOMICS_SERVICE_LOCAL bool GetLocationData (json_t *row_p, const char * const id_s);
 
 
 
