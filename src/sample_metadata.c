@@ -453,7 +453,7 @@ bool GetLocationData (json_t *row_p, const char * const id_s)
 	const char *gps_s = GetJSONString (row_p, PG_GPS_S);
 	const char *country_code_s = NULL;
 
-	Address *address_p = AllocateAddress (NULL, town_s, county_s, country_s, postcode_s, country_code_s, gps_s);
+	Address *address_p = AllocateAddress (NULL, NULL, town_s, county_s, country_s, postcode_s, country_code_s, gps_s);
 
 	if (address_p)
 		{
