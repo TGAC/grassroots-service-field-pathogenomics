@@ -25,8 +25,7 @@
 #include "pathogenomics_utils.h"
 
 
-
-const char *InsertFilesData (MongoTool *tool_p, json_t *values_p, PathogenomicsServiceData *data_p)
+const char *InsertFilesData (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData *data_p)
 {
 	const char *error_s = NULL;
 	const char * const key_s = PG_ID_S;

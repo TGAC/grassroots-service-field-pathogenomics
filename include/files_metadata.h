@@ -43,7 +43,7 @@ extern "C"
 #endif
 
 
-PATHOGENOMICS_SERVICE_LOCAL	const char *InsertFilesData (MongoTool *tool_p, json_t *values_p, PathogenomicsServiceData *data_p);
+PATHOGENOMICS_SERVICE_LOCAL	const char *InsertFilesData (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData *data_p);
 
 
 #ifdef __cplusplus
