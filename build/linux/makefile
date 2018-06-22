@@ -57,5 +57,8 @@ LDFLAGS += -L$(DIR_JANSSON_LIB) -ljansson \
 	-L$(DIR_GRASSROOTS_GEOCODER_LIB) -l$(GRASSROOTS_GEOCODER_LIB_NAME)
 
 
+all:: 
+	make -C $(DIR_GRASSROOTS_GEOCODER_BUILD) all
+
 include $(DIR_BUILD_CONFIG)/generic_makefiles/shared_library.makefile
 
