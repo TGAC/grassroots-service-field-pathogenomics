@@ -50,7 +50,9 @@ PATHOGENOMICS_SERVICE_LOCAL bool GetLocationData (json_t *row_p, const char * co
  *
  * If successful, the converted date will
  *
- * @row_p
+ * @param row_p The json fragment containing the date.
+ * @return <code>true</code> if the date was converted successfully,
+ * <code>false</code> otherwise.
  */
 PATHOGENOMICS_SERVICE_LOCAL bool ConvertDate (json_t *row_p);
 
