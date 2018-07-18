@@ -1,4 +1,4 @@
-﻿# Field Pathogenomics service {#pathogenomics_service}
+﻿# Field Pathogenomics service {#pathogenomics_service_guide}
 
 The Field Pathogenomics service is for tracking the geographical spread of pathogens over time. The method uses new gene sequencing technology to assess the population structure of pathogens directly from infected field samples. It then provides a convenient map-based view of the collected data for easy user access.
 
