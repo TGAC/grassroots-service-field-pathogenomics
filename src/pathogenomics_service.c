@@ -572,7 +572,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 															json_array_foreach (raw_results_p, i, src_record_p)
 															{
-																char *title_s = ConvertNumberToString ((double) i, -1);
+																char *title_s = ConvertUnsignedIntegerToString (i);
 																json_t *dest_record_p = GetResourceAsJSONByParts (PROTOCOL_INLINE_S, NULL, title_s, src_record_p);
 
 																if (dest_record_p)
@@ -956,7 +956,7 @@ static char *GetCurrentDateAsString (void)
 static json_t *ConvertToResource (const size_t i, json_t *src_record_p)
 {
 	json_t *resource_p = NULL;
-	char *title_s = ConvertNumberToString ((double) i, -1);
+	char *title_s = ConvertUnsignedIntegerToString (i);
 
 	if (title_s)
 		{
@@ -1157,7 +1157,7 @@ static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, json_t 
 											for (i = 0; i < size; ++ i)
 												{
 													raw_result_p = json_array_get (raw_results_p, i);
-													char *title_s = ConvertNumberToString ((double) i + 1, -1);
+													char *title_s = ConvertUnsignedIntegerToString (i + 1);
 
 													if (!title_s)
 														{
