@@ -48,28 +48,6 @@ const char *InsertFilesData (MongoTool *tool_p, json_t *values_p, const uint32 s
 							if (json_object_set (doc_p, PG_FILES_S, values_p) == 0)
 								{
 									error_s = EasyInsertOrUpdateMongoData (tool_p, doc_p, PG_ID_S);
-
-									/*
-									char *date_s = ConcatenateStrings (PG_FILES_S, PG_LIVE_DATE_SUFFIX_S);
-
-									if (date_s)
-										{
-											if (AddPublishDateToJSON (doc_p, date_s))
-												{
-													error_s = InsertOrUpdateMongoData (tool_p, doc_p, NULL, NULL, PG_ID_S, NULL, NULL);
-												}
-											else
-												{
-													error_s = "Failed to add current date to files data";
-												}
-
-											FreeCopiedString (date_s);
-										}
-									else
-										{
-											error_s = "Failed to make files date key";
-										}
-									*/
 								}
 							else
 								{
