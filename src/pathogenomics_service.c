@@ -260,7 +260,7 @@ static bool ConfigurePathogenomicsService (PathogenomicsServiceData *data_p)
 
 static PathogenomicsServiceData *AllocatePathogenomicsServiceData (void)
 {
-	MongoTool *tool_p = AllocateMongoTool ();
+	MongoTool *tool_p = AllocateMongoTool (NULL);
 
 	if (tool_p)
 		{
