@@ -543,7 +543,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 								{
 									param_p = GetParameterFromParameterSetByName (param_set_p, PGS_DUMP.npt_name_s);
 
-									SetMongoToolCollection (tool_p, data_p -> psd_database_s, collection_name_s);
+									SetMongoToolDatabaseAndCollection (tool_p, data_p -> psd_database_s, collection_name_s);
 
 									SetServiceJobStatus (job_p, OS_STARTED);
 									LogServiceJob (job_p);
