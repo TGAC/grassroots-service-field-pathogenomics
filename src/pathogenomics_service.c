@@ -551,7 +551,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 									/* Do we want to get a dump of the entire collection? */
 									if (param_p && (param_p -> pa_type == PT_BOOLEAN) && (param_p -> pa_current_value.st_boolean_value == true))
 										{
-											json_t *raw_results_p = GetAllMongoResultsAsJSON (tool_p, NULL);
+											json_t *raw_results_p = GetAllMongoResultsAsJSON (tool_p, NULL, NULL);
 
 											if (raw_results_p)
 												{
@@ -1112,7 +1112,7 @@ static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, json_t 
 
 				}		/* if (fields_p) */
 
-			if (FindMatchingMongoDocumentsByJSON (tool_p, values_p, fields_ss))
+			if (FindMatchingMongoDocumentsByJSON (tool_p, values_p, fields_ss, NULL))
 				{
 					json_t *raw_results_p = GetAllExistingMongoResultsAsJSON (tool_p);
 
