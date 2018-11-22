@@ -177,6 +177,7 @@ static json_t *GetPathogenomicsServiceResults (Service *service_p, const uuid_t 
 
 static Service *GetPathogenomicsService (void)
 {
+
 	Service *service_p = (Service *) AllocMemory (sizeof (Service));
 
 	if (service_p)
@@ -186,37 +187,42 @@ static Service *GetPathogenomicsService (void)
 			if (data_p)
 				{
 					if (InitialiseService (service_p,
-														 GetPathogenomicsServiceName,
-														 GetPathogenomicsServiceDesciption,
-														 GetPathogenomicsServiceInformationUri,
-														 RunPathogenomicsService,
-														 IsResourceForPathogenomicsService,
-														 GetPathogenomicsServiceParameters,
-														 ReleasePathogenomicsServiceParameters,
-														 ClosePathogenomicsService,
-														 NULL,
-														 false,
-														 SY_SYNCHRONOUS,
-														 (ServiceData *) data_p,
-														 GetPathogenomicsServiceMetadata))
+																 GetPathogenomicsServiceName,
+																 GetPathogenomicsServiceDesciption,
+																 GetPathogenomicsServiceInformationUri,
+																 RunPathogenomicsService,
+																 IsResourceForPathogenomicsService,
+																 GetPathogenomicsServiceParameters,
+																 ReleasePathogenomicsServiceParameters,
+																 ClosePathogenomicsService,
+																 NULL,
+																 false,
+																 SY_SYNCHRONOUS,
+																 (ServiceData *) data_p,
+																 GetPathogenomicsServiceMetadata))
 						{
 
-							if (ConfigurePathogenomicsService (data_p))
-								{
-									*s_data_names_pp = PG_SAMPLE_S;
-									* (s_data_names_pp + 1) = PG_PHENOTYPE_S;
-									* (s_data_names_pp + 2) = PG_GENOTYPE_S;
-									* (s_data_names_pp + 3) = PG_FILES_S;
+							*s_data_names_pp = PG_SAMPLE_S;
+							* (s_data_names_pp + 1) = PG_PHENOTYPE_S;
+							* (s_data_names_pp + 2) = PG_GENOTYPE_S;
+							* (s_data_names_pp + 3) = PG_FILES_S;
 
-									return service_p;
-								}
-
+							return service_p;
 						}		/* if (InitialiseService (.... */
+					else
+						{
+							FreeService (service_p);
+							service_p = NULL;
+						}
+
 
 					FreePathogenomicsServiceData (data_p);
-				}
+				}		/* if (data_p) */
 
-			FreeMemory (service_p);
+			if (service_p)
+				{
+					FreeMemory (service_p);
+				}
 		}		/* if (service_p) */
 
 	return NULL;
@@ -671,25 +677,25 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 															/* Check that all of the required columns are present */
 															switch (collection_type)
-																{
-																	case PD_SAMPLE:
-																		success_flag = CheckSampleData (headers_p, job_p, data_p);
-																		break;
+															{
+																case PD_SAMPLE:
+																	success_flag = CheckSampleData (headers_p, job_p, data_p);
+																	break;
 
-																	case PD_PHENOTYPE:
-																		success_flag = CheckPhenotypeData (headers_p, job_p, data_p);
-																		break;
+																case PD_PHENOTYPE:
+																	success_flag = CheckPhenotypeData (headers_p, job_p, data_p);
+																	break;
 
-																	case PD_GENOTYPE:
-																		success_flag = CheckGenotypeData (headers_p, job_p, data_p);
-																		break;
+																case PD_GENOTYPE:
+																	success_flag = CheckGenotypeData (headers_p, job_p, data_p);
+																	break;
 
-																	case PD_FILES:
-																		break;
+																case PD_FILES:
+																	break;
 
-																	default:
-																		break;
-																}
+																default:
+																	break;
+															}
 
 															if (success_flag)
 																{
@@ -702,9 +708,9 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 													if (json_param_p)
 														{
-															#if PATHOGENOMICS_SERVICE_DEBUG >= STM_LEVEL_FINE
+#if PATHOGENOMICS_SERVICE_DEBUG >= STM_LEVEL_FINE
 															PrintJSONToLog (STM_LEVEL_FINE, __FILE__, __LINE__, json_param_p, "table");
-															#endif
+#endif
 
 															free_json_param_flag = true;
 														}
@@ -770,9 +776,9 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 													if (search_status == OS_SUCCEEDED || search_status == OS_PARTIALLY_SUCCEEDED)
 														{
-															#if PATHOGENOMICS_SERVICE_DEBUG >= STM_LEVEL_FINER
+#if PATHOGENOMICS_SERVICE_DEBUG >= STM_LEVEL_FINER
 															PrintJSONToLog (STM_LEVEL_FINER, __FILE__, __LINE__, job_p -> sj_result_p, "initial results");
-															#endif
+#endif
 
 															num_successes = GetNumberOfServiceJobResults (job_p);
 														}
@@ -1091,20 +1097,20 @@ static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, json_t 
 									json_t *field_p;
 
 									json_array_foreach (fields_p, i, field_p)
-										{
-											if (json_is_string (field_p))
-												{
-													*field_ss = json_string_value (field_p);
-													++ field_ss;
-												}
-											else
-												{
-													char *dump_s = json_dumps (field_p, JSON_INDENT (2));
+									{
+										if (json_is_string (field_p))
+											{
+												*field_ss = json_string_value (field_p);
+												++ field_ss;
+											}
+										else
+											{
+												char *dump_s = json_dumps (field_p, JSON_INDENT (2));
 
-													PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to get field from %s", dump_s);
-													free (dump_s);
-												}
-										}
+												PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to get field from %s", dump_s);
+												free (dump_s);
+											}
+									}
 
 								}		/* if (fields_ss) */
 
@@ -1328,7 +1334,7 @@ bool AddErrorMessage (json_t *errors_p, const json_t *values_p, const size_t row
 
 	return success_flag;
 }
-*/
+ */
 
 
 static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p, const PathogenomicsData collection_type, const uint32 stage_time, PathogenomicsServiceData *data_p)
@@ -1336,31 +1342,31 @@ static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p
 	uint32 num_imports = 0;
 	const char *(*insert_fn) (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData *data_p) = NULL;
 
-	#if PATHOGENOMICS_SERVICE_DEBUG >= STM_LEVEL_FINE
+#if PATHOGENOMICS_SERVICE_DEBUG >= STM_LEVEL_FINE
 	PrintJSONToLog (STM_LEVEL_FINE, __FILE__, __LINE__, values_p, "values_p: ");
-	#endif
+#endif
 
 	switch (collection_type)
-		{
-			case PD_SAMPLE:
-				insert_fn = InsertSampleData;
-				break;
+	{
+		case PD_SAMPLE:
+			insert_fn = InsertSampleData;
+			break;
 
-			case PD_PHENOTYPE:
-				insert_fn = InsertPhenotypeData;
-				break;
+		case PD_PHENOTYPE:
+			insert_fn = InsertPhenotypeData;
+			break;
 
-			case PD_GENOTYPE:
-				insert_fn = InsertGenotypeData;
-				break;
+		case PD_GENOTYPE:
+			insert_fn = InsertGenotypeData;
+			break;
 
-			case PD_FILES:
-				insert_fn = InsertFilesData;
-				break;
+		case PD_FILES:
+			insert_fn = InsertFilesData;
+			break;
 
-			default:
-				break;
-		}
+		default:
+			break;
+	}
 
 
 	if (insert_fn)
@@ -1371,18 +1377,18 @@ static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p
 					size_t i;
 
 					json_array_foreach (values_p, i, value_p)
-						{
-							const char *error_s = insert_fn (tool_p, value_p, stage_time, data_p);
+					{
+						const char *error_s = insert_fn (tool_p, value_p, stage_time, data_p);
 
-							if (error_s)
-								{
-									AddErrorMessage (job_p, value_p, error_s, i);
-								}
-							else
-								{
-									++ num_imports;
-								}
-						}
+						if (error_s)
+							{
+								AddErrorMessage (job_p, value_p, error_s, i);
+							}
+						else
+							{
+								++ num_imports;
+							}
+					}
 				}
 			else
 				{
@@ -1485,9 +1491,9 @@ static ServiceMetadata *GetPathogenomicsServiceMetadata (Service *service_p)
 {
 	const char *term_url_s = CONTEXT_PREFIX_EDAM_ONTOLOGY_S "topic_0625";
 	SchemaTerm *category_p = AllocateSchemaTerm (term_url_s, "Genotype and phenotype",
-		"The study of genetic constitution of a living entity, such as an individual, and organism, a cell and so on, "
-		"typically with respect to a particular observable phenotypic traits, or resources concerning such traits, which "
-		"might be an aspect of biochemistry, physiology, morphology, anatomy, development and so on.");
+																							 "The study of genetic constitution of a living entity, such as an individual, and organism, a cell and so on, "
+																							 "typically with respect to a particular observable phenotypic traits, or resources concerning such traits, which "
+																							 "might be an aspect of biochemistry, physiology, morphology, anatomy, development and so on.");
 
 	if (category_p)
 		{
@@ -1506,7 +1512,7 @@ static ServiceMetadata *GetPathogenomicsServiceMetadata (Service *service_p)
 
 							term_url_s = CONTEXT_PREFIX_EDAM_ONTOLOGY_S "data_0968";
 							input_p = AllocateSchemaTerm (term_url_s, "Keyword",
-								"Boolean operators (AND, OR and NOT) and wildcard characters may be allowed. Keyword(s) or phrase(s) used (typically) for text-searching purposes.");
+																						"Boolean operators (AND, OR and NOT) and wildcard characters may be allowed. Keyword(s) or phrase(s) used (typically) for text-searching purposes.");
 
 							if (input_p)
 								{
@@ -1541,7 +1547,7 @@ static ServiceMetadata *GetPathogenomicsServiceMetadata (Service *service_p)
 																							/* Phenotype */
 																							term_url_s = CONTEXT_PREFIX_EXPERIMENTAL_FACTOR_ONTOLOGY_S "EFO_0000651";
 																							output_p = AllocateSchemaTerm (term_url_s, "phenotype", "The observable form taken by some character (or group of characters) "
-																								"in an individual or an organism, excluding pathology and disease. The detectable outward manifestations of a specific genotype.");
+																																						 "in an individual or an organism, excluding pathology and disease. The detectable outward manifestations of a specific genotype.");
 
 																							if (output_p)
 																								{
@@ -1550,7 +1556,7 @@ static ServiceMetadata *GetPathogenomicsServiceMetadata (Service *service_p)
 																											/* Genotype */
 																											term_url_s = CONTEXT_PREFIX_EXPERIMENTAL_FACTOR_ONTOLOGY_S "EFO_0000513";
 																											output_p = AllocateSchemaTerm (term_url_s, "genotype", "Information, making the distinction between the actual physical material "
-																												"(e.g. a cell) and the information about the genetic content (genotype).");
+																																										 "(e.g. a cell) and the information about the genetic content (genotype).");
 
 																											if (output_p)
 																												{
@@ -1635,6 +1641,7 @@ static ServiceMetadata *GetPathogenomicsServiceMetadata (Service *service_p)
 									PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to allocate input term %s for service metadata", term_url_s);
 								}
 
+							FreeServiceMetadata (metadata_p);
 						}		/* if (metadata_p) */
 					else
 						{
