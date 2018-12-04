@@ -359,7 +359,7 @@ static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Reso
 								{
 									def.st_boolean_value = false;
 
-									if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_DUMP.npt_type, PGS_DUMP.npt_name_s, "Dump", "Get all of the data in the system", def, PL_INTERMEDIATE | PL_ADVANCED)) != NULL)
+									if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_DUMP.npt_type, PGS_DUMP.npt_name_s, "Dump", "Get all of the data in the system", def, PL_ADVANCED)) != NULL)
 										{
 											if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_PREVIEW.npt_type, PGS_PREVIEW.npt_name_s, "Preview", "Ignore the live dates", def, PL_ADVANCED)) != NULL)
 												{
