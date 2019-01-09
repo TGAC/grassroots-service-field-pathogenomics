@@ -84,6 +84,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 static  ParameterSet *IsResourceForPathogenomicsService (Service *service_p, Resource *resource_p, Handler *handler_p);
 
+static bool GetPathogenomicsServiceParameterTypesForNamedParameters (struct Service *service_p, const char *param_name_s, ParameterType *pt_p);
 
 static PathogenomicsServiceData *AllocatePathogenomicsServiceData (void);
 
@@ -193,6 +194,7 @@ static Service *GetPathogenomicsService (void)
 																 RunPathogenomicsService,
 																 IsResourceForPathogenomicsService,
 																 GetPathogenomicsServiceParameters,
+																 GetPathogenomicsServiceParameterTypesForNamedParameters,
 																 ReleasePathogenomicsServiceParameters,
 																 ClosePathogenomicsService,
 																 NULL,
@@ -405,6 +407,55 @@ static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Reso
 		}
 
 	return NULL;
+}
+
+
+static bool GetPathogenomicsServiceParameterTypesForNamedParameters (struct Service *service_p, const char *param_name_s, ParameterType *pt_p)
+{
+	bool success_flag = true;
+
+	if (strcmp (param_name_s, PGS_UPDATE.npt_name_s) == 0)
+		{
+			*pt_p = PGS_UPDATE.npt_type;
+		}
+	else if (strcmp (param_name_s, PGS_QUERY.npt_name_s) == 0)
+		{
+			*pt_p = PGS_QUERY.npt_type;
+		}
+	else if (strcmp (param_name_s, PGS_REMOVE.npt_name_s) == 0)
+		{
+			*pt_p = PGS_REMOVE.npt_type;
+		}
+	else if (strcmp (param_name_s, PGS_DUMP.npt_name_s) == 0)
+		{
+			*pt_p = PGS_DUMP.npt_type;
+		}
+	else if (strcmp (param_name_s, PGS_PREVIEW.npt_name_s) == 0)
+		{
+			*pt_p = PGS_PREVIEW.npt_type;
+		}
+	else if (strcmp (param_name_s, PGS_STAGE_TIME.npt_name_s) == 0)
+		{
+			*pt_p = PGS_STAGE_TIME.npt_type;
+		}
+	else if (strcmp (param_name_s, PGS_COLLECTION.npt_name_s) == 0)
+		{
+			*pt_p = PGS_COLLECTION.npt_type;
+		}
+	else if (strcmp (param_name_s, PGS_DELIMITER.npt_name_s) == 0)
+		{
+			*pt_p = PGS_DELIMITER.npt_type;
+		}
+	else if (strcmp (param_name_s, PGS_FILE.npt_name_s) == 0)
+		{
+			*pt_p = PGS_FILE.npt_type;
+		}
+	else
+		{
+			success_flag = false;
+		}
+
+	return success_flag;
 }
 
 
