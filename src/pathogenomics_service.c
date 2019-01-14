@@ -209,16 +209,25 @@ static Service *GetPathogenomicsService (void)
 							* (s_data_names_pp + 2) = PG_GENOTYPE_S;
 							* (s_data_names_pp + 3) = PG_FILES_S;
 
-							return service_p;
+
+							if (ConfigurePathogenomicsService (data_p))
+								{
+									return service_p;
+								}
+
+
 						}		/* if (InitialiseService (.... */
 					else
 						{
 							FreeService (service_p);
 							service_p = NULL;
+							data_p = NULL;
 						}
 
-
-					FreePathogenomicsServiceData (data_p);
+					if (data_p)
+						{
+							FreePathogenomicsServiceData (data_p);
+						}
 				}		/* if (data_p) */
 
 			if (service_p)
