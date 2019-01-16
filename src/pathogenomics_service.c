@@ -473,7 +473,7 @@ static bool AddUploadParams (ServiceData *data_p, ParameterSet *param_set_p)
 	bool success_flag = false;
 	Parameter *param_p = NULL;
 	SharedType def;
-	ParameterGroup *group_p = CreateAndAddParameterGroupToParameterSet ("Spreadsheet Import Parameters", NULL, false, data_p, param_set_p);
+	ParameterGroup *group_p = CreateAndAddParameterGroupToParameterSet ("Spreadsheet Import Parameters", false, data_p, param_set_p);
 
 	def.st_char_value = S_DEFAULT_COLUMN_DELIMITER;
 
