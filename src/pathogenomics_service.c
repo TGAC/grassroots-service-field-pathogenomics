@@ -340,7 +340,7 @@ static const char *GetPathogenomicsServiceName (Service * UNUSED_PARAM (service_
 
 static const char *GetPathogenomicsServiceDesciption (Service * UNUSED_PARAM (service_p))
 {
-	return "A service to analyse the spread of Wheat-related diseases both geographically and temporally";
+	return "Analyse the spread of Wheat-related diseases both geographically and over time";
 }
 
 
