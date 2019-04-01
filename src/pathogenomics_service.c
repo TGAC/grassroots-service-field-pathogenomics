@@ -201,7 +201,8 @@ static Service *GetPathogenomicsService (void)
 																 false,
 																 SY_SYNCHRONOUS,
 																 (ServiceData *) data_p,
-																 GetPathogenomicsServiceMetadata))
+																 GetPathogenomicsServiceMetadata,
+																 NULL))
 						{
 
 							*s_data_names_pp = PG_SAMPLE_S;
