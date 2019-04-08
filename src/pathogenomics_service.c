@@ -335,7 +335,7 @@ static void FreePathogenomicsServiceData (PathogenomicsServiceData *data_p)
 
 static const char *GetPathogenomicsServiceName (Service * UNUSED_PARAM (service_p))
 {
-	return "Pathogenomics Geoservice";
+	return "Field Pathogenomics";
 }
 
 
