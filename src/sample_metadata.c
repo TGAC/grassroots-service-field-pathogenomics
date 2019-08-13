@@ -443,7 +443,7 @@ bool ConvertDate (json_t *row_p)
 
 
 
-bool GetLocationData (json_t *row_p, const char * const id_s)
+bool GetLocationData (json_t *row_p, const char * const id_s, GrassrootsServer *grassroots_p)
 {
 	bool got_location_flag = false;
 	const char *town_s = GetJSONString (row_p, PG_TOWN_S);
@@ -457,7 +457,7 @@ bool GetLocationData (json_t *row_p, const char * const id_s)
 
 	if (address_p)
 		{
-			if (DetermineGPSLocationForAddress (address_p, NULL))
+			if (DetermineGPSLocationForAddress (address_p, NULL, grassroots_p))
 				{
 					/*
 					 * The address now has GPS coordinates so we need to add the
@@ -767,7 +767,9 @@ static const char *PrepareSampleData (MongoTool *tool_p, json_t *values_p, Patho
 		{
 			if (ConvertDate (values_p))
 				{
-					if (GetLocationData (values_p, pathogenomics_id_s))
+					GrassrootsServer *grassroots_p = GetGrassrootsServerFromService (data_p -> psd_base_data.sd_service_p);
+
+					if (GetLocationData (values_p, pathogenomics_id_s, grassroots_p))
 						{
 							/* convert YR/SR/LR to yellow, stem or leaf rust */
 							if (ReplacePathogen (values_p))

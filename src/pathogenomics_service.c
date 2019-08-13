@@ -25,7 +25,6 @@
 #include "mongodb_tool.h"
 #include "string_utils.h"
 #include "json_tools.h"
-#include "grassroots_config.h"
 #include "country_codes.h"
 #include "sample_metadata.h"
 #include "phenotype_metadata.h"
@@ -68,7 +67,7 @@ static const int32 S_DEFAULT_STAGE_TIME = 30;
  * STATIC PROTOTYPES
  */
 
-static Service *GetPathogenomicsService (void);
+static Service *GetPathogenomicsService (GrassrootsServer *grassroots_p);
 
 static const char *GetPathogenomicsServiceName (Service *service_p);
 
@@ -90,7 +89,7 @@ static PathogenomicsServiceData *AllocatePathogenomicsServiceData (void);
 
 static json_t *GetPathogenomicsServiceResults (Service *service_p, const uuid_t job_id);
 
-static bool ConfigurePathogenomicsService (PathogenomicsServiceData *data_p);
+static bool ConfigurePathogenomicsService (PathogenomicsServiceData *data_p, GrassrootsServer *grassroots_p);
 
 
 static void FreePathogenomicsServiceData (PathogenomicsServiceData *data_p);
@@ -128,13 +127,13 @@ static ServiceMetadata *GetPathogenomicsServiceMetadata (Service *service_p);
  */
 
 
-ServicesArray *GetServices (UserDetails *user_p)
+ServicesArray *GetServices (UserDetails *user_p, GrassrootsServer *grassroots_p)
 {
 	ServicesArray *services_p = AllocateServicesArray (1);
 
 	if (services_p)
 		{
-			Service *service_p = GetPathogenomicsService ();
+			Service *service_p = GetPathogenomicsService (grassroots_p);
 
 			if (service_p)
 				{
@@ -176,7 +175,7 @@ static json_t *GetPathogenomicsServiceResults (Service *service_p, const uuid_t 
 
 
 
-static Service *GetPathogenomicsService (void)
+static Service *GetPathogenomicsService (GrassrootsServer *grassroots_p)
 {
 
 	Service *service_p = (Service *) AllocMemory (sizeof (Service));
@@ -202,7 +201,8 @@ static Service *GetPathogenomicsService (void)
 																 SY_SYNCHRONOUS,
 																 (ServiceData *) data_p,
 																 GetPathogenomicsServiceMetadata,
-																 NULL))
+																 NULL,
+																 grassroots_p))
 						{
 
 							*s_data_names_pp = PG_SAMPLE_S;
@@ -211,7 +211,7 @@ static Service *GetPathogenomicsService (void)
 							* (s_data_names_pp + 3) = PG_FILES_S;
 
 
-							if (ConfigurePathogenomicsService (data_p))
+							if (ConfigurePathogenomicsService (data_p, grassroots_p))
 								{
 									return service_p;
 								}
@@ -241,36 +241,39 @@ static Service *GetPathogenomicsService (void)
 }
 
 
-static bool ConfigurePathogenomicsService (PathogenomicsServiceData *data_p)
+static bool ConfigurePathogenomicsService (PathogenomicsServiceData *data_p, GrassrootsServer *grassroots_p)
 {
 	bool success_flag = false;
-	const json_t *service_config_p = data_p -> psd_base_data.sd_config_p;
 
-
-	data_p -> psd_database_s = GetJSONString (service_config_p, "database");
-
-	if (data_p -> psd_database_s)
+	if ((data_p -> psd_tool_p = AllocateMongoTool (NULL, grassroots_p -> gs_mongo_manager_p)) != NULL)
 		{
+			const json_t *service_config_p = data_p -> psd_base_data.sd_config_p;
 
-			if ((* (data_p -> psd_collection_ss + PD_SAMPLE) = GetJSONString (service_config_p, "samples_collection")) != NULL)
+			data_p -> psd_database_s = GetJSONString (service_config_p, "database");
+
+			if (data_p -> psd_database_s)
 				{
-					if ((* (data_p -> psd_collection_ss + PD_PHENOTYPE) = GetJSONString (service_config_p, "phenotypes_collection")) != NULL)
-						{
-							if ((* (data_p -> psd_collection_ss + PD_GENOTYPE) = GetJSONString (service_config_p, "genotypes_collection")) != NULL)
-								{
-									if ((* (data_p -> psd_collection_ss + PD_FILES) = GetJSONString (service_config_p, "files_collection")) != NULL)
-										{
-											data_p -> psd_files_download_root_uri_s = GetJSONString (service_config_p, "files_host");
 
-											success_flag = true;
+					if ((* (data_p -> psd_collection_ss + PD_SAMPLE) = GetJSONString (service_config_p, "samples_collection")) != NULL)
+						{
+							if ((* (data_p -> psd_collection_ss + PD_PHENOTYPE) = GetJSONString (service_config_p, "phenotypes_collection")) != NULL)
+								{
+									if ((* (data_p -> psd_collection_ss + PD_GENOTYPE) = GetJSONString (service_config_p, "genotypes_collection")) != NULL)
+										{
+											if ((* (data_p -> psd_collection_ss + PD_FILES) = GetJSONString (service_config_p, "files_collection")) != NULL)
+												{
+													data_p -> psd_files_download_root_uri_s = GetJSONString (service_config_p, "files_host");
+
+													success_flag = true;
+												}
 										}
 								}
 						}
-				}
 
-		} /* if (data_p -> psd_database_s) */
+				} /* if (data_p -> psd_database_s) */
 
-	GetJSONInteger (service_config_p, "stage_time", & (data_p -> psd_default_stage_time));
+			GetJSONInteger (service_config_p, "stage_time", & (data_p -> psd_default_stage_time));
+		}
 
 	return success_flag;
 }
@@ -278,29 +281,20 @@ static bool ConfigurePathogenomicsService (PathogenomicsServiceData *data_p)
 
 static PathogenomicsServiceData *AllocatePathogenomicsServiceData (void)
 {
-	MongoTool *tool_p = AllocateMongoTool (NULL);
+	PathogenomicsServiceData *data_p = (PathogenomicsServiceData *) AllocMemory (sizeof (PathogenomicsServiceData));
 
-	if (tool_p)
+	if (data_p)
 		{
-			PathogenomicsServiceData *data_p = (PathogenomicsServiceData *) AllocMemory (sizeof (PathogenomicsServiceData));
+			data_p -> psd_tool_p = NULL;
+			data_p -> psd_database_s = NULL;
+			data_p -> psd_default_stage_time = S_DEFAULT_STAGE_TIME;
 
-			if (data_p)
-				{
-					data_p -> psd_tool_p = tool_p;
-					data_p -> psd_database_s = NULL;
-					data_p -> psd_default_stage_time = S_DEFAULT_STAGE_TIME;
+			memset (data_p -> psd_collection_ss, 0, PD_NUM_TYPES * sizeof (const char *));
 
-					memset (data_p -> psd_collection_ss, 0, PD_NUM_TYPES * sizeof (const char *));
+			data_p -> psd_files_download_root_uri_s = NULL;
 
-					data_p -> psd_files_download_root_uri_s = NULL;
-
-					return data_p;
-				}
-
-			FreeMongoTool (tool_p);
+			return data_p;
 		}
-
-	return NULL;
 }
 
 

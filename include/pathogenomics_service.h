@@ -245,7 +245,7 @@ extern "C"
  *
  * @ingroup pathogenomics_service
  */
-PATHOGENOMICS_SERVICE_API ServicesArray *GetServices (UserDetails *user_p);
+PATHOGENOMICS_SERVICE_API ServicesArray *GetServices (UserDetails *user_p, GrassrootsServer *grassroots_p);
 
 
 /**
