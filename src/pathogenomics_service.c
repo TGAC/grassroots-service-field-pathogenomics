@@ -292,9 +292,9 @@ static PathogenomicsServiceData *AllocatePathogenomicsServiceData (void)
 			memset (data_p -> psd_collection_ss, 0, PD_NUM_TYPES * sizeof (const char *));
 
 			data_p -> psd_files_download_root_uri_s = NULL;
-
-			return data_p;
 		}
+
+	return data_p;
 }
 
 
