@@ -37,6 +37,12 @@
 #include "io_utils.h"
 #include "audit.h"
 
+#include "char_parameter.h"
+#include "json_parameter.h"
+#include "boolean_parameter.h"
+#include "string_parameter.h"
+#include "signed_int_parameter.h"
+
 
 #ifdef _DEBUG
 #define PATHOGENOMICS_SERVICE_DEBUG	(STM_LEVEL_FINER)
@@ -97,13 +103,13 @@ static void FreePathogenomicsServiceData (PathogenomicsServiceData *data_p);
 static bool ClosePathogenomicsService (Service *service_p);
 
 
-static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p, const PathogenomicsData collection_type, const uint32 stage_time, PathogenomicsServiceData *service_data_p);
+static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, const json_t *values_p, const PathogenomicsData collection_type, const uint32 stage_time, PathogenomicsServiceData *service_data_p);
 
 
-static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, json_t *data_p, const PathogenomicsData collection_type, PathogenomicsServiceData *service_data_p, const bool preview_flag);
+static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, const json_t *data_p, const PathogenomicsData collection_type, PathogenomicsServiceData *service_data_p, const bool preview_flag);
 
 
-static uint32 DeleteData (MongoTool *tool_p, ServiceJob *job_p, json_t *data_p, const PathogenomicsData collection_type, PathogenomicsServiceData *service_data_p);
+static uint32 DeleteData (MongoTool *tool_p, ServiceJob *job_p, const json_t *data_p, const PathogenomicsData collection_type, PathogenomicsServiceData *service_data_p);
 
 static bool AddUploadParams (ServiceData *data_p, ParameterSet *param_set_p);
 
@@ -353,38 +359,31 @@ static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Reso
 		{
 			ServiceData *service_data_p = service_p -> se_data_p;
 			Parameter *param_p = NULL;
-			SharedType def;
 
-			def.st_json_p = NULL;
-
-			if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_UPDATE.npt_type, PGS_UPDATE.npt_name_s, "Update", "Add data to the system", def, PL_ADVANCED)) != NULL)
+			if ((param_p = EasyCreateAndAddJSONParameterToParameterSet (service_data_p, params_p, NULL, PGS_UPDATE.npt_type, PGS_UPDATE.npt_name_s, "Update", "Add data to the system", NULL, PL_ADVANCED)) != NULL)
 				{
-					if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_QUERY.npt_type, PGS_QUERY.npt_name_s, "Search", "Find data to the system", def, PL_ALL)) != NULL)
+					if ((param_p = EasyCreateAndAddJSONParameterToParameterSet (service_data_p, params_p, NULL, PGS_QUERY.npt_type, PGS_QUERY.npt_name_s, "Search", "Find data to the system", NULL, PL_ALL)) != NULL)
 						{
-							if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_REMOVE.npt_type, PGS_REMOVE.npt_name_s, "Delete", "Delete data to the system", def, PL_ADVANCED)) != NULL)
+							if ((param_p = EasyCreateAndAddJSONParameterToParameterSet (service_data_p, params_p, NULL, PGS_REMOVE.npt_type, PGS_REMOVE.npt_name_s, "Delete", "Delete data to the system", NULL, PL_ADVANCED)) != NULL)
 								{
-									def.st_boolean_value = false;
+									bool b = false;
 
-									if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_DUMP.npt_type, PGS_DUMP.npt_name_s, "Dump", "Get all of the data in the system", def, PL_ADVANCED)) != NULL)
+									if ((param_p = EasyCreateAndAddBooleanParameterToParameterSet (service_data_p, params_p, NULL, PGS_DUMP.npt_name_s, "Dump", "Get all of the data in the system", &b, PL_ADVANCED)) != NULL)
 										{
-											if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_PREVIEW.npt_type, PGS_PREVIEW.npt_name_s, "Preview", "Ignore the live dates", def, PL_ADVANCED)) != NULL)
+											if ((param_p = EasyCreateAndAddBooleanParameterToParameterSet (service_data_p, params_p, NULL, PGS_PREVIEW.npt_name_s, "Preview", "Ignore the live dates", &b, PL_ADVANCED)) != NULL)
 												{
-													def.st_long_value = ((PathogenomicsServiceData *) service_data_p) -> psd_default_stage_time;
+													int32 *l_p = & (((PathogenomicsServiceData *) service_data_p) -> psd_default_stage_time);
 
-													if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_STAGE_TIME.npt_type, PGS_STAGE_TIME.npt_name_s, "Publish Delay", "Number of days before the data is publically accessible", def, PL_ADVANCED)) != NULL)
+													if ((param_p = EasyCreateAndAddSignedIntParameterToParameterSet (service_data_p, params_p, NULL, PGS_STAGE_TIME.npt_type, PGS_STAGE_TIME.npt_name_s, "Publish Delay", "Number of days before the data is publically accessible", l_p, PL_ADVANCED)) != NULL)
 														{
-															def.st_string_value_s = (char *) *s_data_names_pp;
-
-															if ((param_p = EasyCreateAndAddParameterToParameterSet (service_data_p, params_p, NULL, PGS_COLLECTION.npt_type, PGS_COLLECTION.npt_name_s, "Collection", "The collection to act upon", def, PL_ALL)) != NULL)
+															if ((param_p = EasyCreateAndAddStringParameterToParameterSet (service_data_p, params_p, NULL, PGS_COLLECTION.npt_type, PGS_COLLECTION.npt_name_s, "Collection", "The collection to act upon", *s_data_names_pp, PL_ALL)) != NULL)
 																{
 																	bool success_flag = true;
 																	uint32 i;
 
 																	for (i = 0; i < PD_NUM_TYPES; ++ i)
 																		{
-																			def.st_string_value_s = (char *) s_data_names_pp [i];
-
-																			if (!CreateAndAddParameterOptionToParameter (param_p, def, NULL))
+																			if (!CreateAndAddStringParameterOption ((StringParameter *) param_p, s_data_names_pp [i], NULL))
 																				{
 																					i = PD_NUM_TYPES;
 																					success_flag = false;
@@ -467,16 +466,11 @@ static bool AddUploadParams (ServiceData *data_p, ParameterSet *param_set_p)
 {
 	bool success_flag = false;
 	Parameter *param_p = NULL;
-	SharedType def;
 	ParameterGroup *group_p = CreateAndAddParameterGroupToParameterSet ("Spreadsheet Import Parameters", false, data_p, param_set_p);
 
-	def.st_char_value = S_DEFAULT_COLUMN_DELIMITER;
-
-	if ((param_p = CreateAndAddParameterToParameterSet (data_p, param_set_p, group_p, PGS_DELIMITER.npt_type, false, PGS_DELIMITER.npt_name_s, "Delimiter", "The character delimiting columns", NULL, def, NULL, NULL, PL_ALL, NULL)) != NULL)
+	if ((param_p = EasyCreateAndAddCharParameterToParameterSet (data_p, param_set_p, group_p, PGS_DELIMITER.npt_name_s, "Delimiter", "The character delimiting columns", &S_DEFAULT_COLUMN_DELIMITER, PL_ALL)) != NULL)
 		{
-			def.st_string_value_s = NULL;
-
-			if ((param_p = CreateAndAddParameterToParameterSet (data_p, param_set_p, group_p, PGS_FILE.npt_type, false, PGS_FILE.npt_name_s, "Data to upload", "The data to upload", NULL, def, NULL, NULL, PL_ALL, NULL)) != NULL)
+			if ((param_p = EasyCreateAndAddStringParameterToParameterSet (data_p, param_set_p, group_p, PGS_FILE.npt_type, PGS_FILE.npt_name_s, "Data to upload", "The data to upload", NULL, PL_ALL)) != NULL)
 				{
 					success_flag = true;
 				}
@@ -542,12 +536,10 @@ static json_type GetPathogenomicsJSONFieldType (const char *name_s, const void *
 
 static bool GetCollectionName (ParameterSet *param_set_p, PathogenomicsServiceData *data_p, const char **collection_name_ss, PathogenomicsData *collection_type_p)
 {
-	SharedType value;
+	const char *collection_s = NULL;
 
-	if (GetParameterValueFromParameterSet (param_set_p, PGS_COLLECTION.npt_name_s, &value, true))
+	if (GetCurrentStringParameterValueFromParameterSet (param_set_p, PGS_COLLECTION.npt_name_s, &collection_s))
 		{
-			const char *collection_s = value.st_string_value_s;
-
 			if (collection_s)
 				{
 					uint32 i;
@@ -589,11 +581,13 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 					const char *collection_name_s = NULL;
 					bool preview_flag = false;
 					PathogenomicsData collection_type = PD_NUM_TYPES;
-					Parameter *param_p = GetParameterFromParameterSetByName (param_set_p, PGS_PREVIEW.npt_name_s);
+					const bool *b_p = NULL;
+					Parameter *param_p = NULL;
 
-					if (param_p && (param_p -> pa_type == PT_BOOLEAN))
+					GetCurrentBooleanParameterValueFromParameterSet (param_set_p, PGS_PREVIEW.npt_name_s, &b_p);
+					if (b_p)
 						{
-							preview_flag = param_p -> pa_current_value.st_boolean_value;
+							preview_flag = *b_p;
 						}
 
 					if (GetCollectionName (param_set_p, data_p, &collection_name_s, &collection_type))
@@ -602,15 +596,10 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 							if (tool_p)
 								{
-									param_p = GetParameterFromParameterSetByName (param_set_p, PGS_DUMP.npt_name_s);
-
-									SetMongoToolDatabaseAndCollection (tool_p, data_p -> psd_database_s, collection_name_s);
-
-									SetServiceJobStatus (job_p, OS_STARTED);
-									LogServiceJob (job_p);
+									GetCurrentBooleanParameterValueFromParameterSet (param_set_p, PGS_DUMP.npt_name_s, &b_p);
 
 									/* Do we want to get a dump of the entire collection? */
-									if (param_p && (param_p -> pa_type == PT_BOOLEAN) && (param_p -> pa_current_value.st_boolean_value == true))
+									if ((b_p != NULL) && (*b_p == true))
 										{
 											json_t *raw_results_p = GetAllMongoResultsAsJSON (tool_p, NULL, NULL);
 
@@ -703,16 +692,18 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 										}		/* if (param_p && (param_p -> pa_type == PT_BOOLEAN) && (param_p -> pa_current_value.st_boolean_value == true)) */
 									else
 										{
-											json_t *json_param_p = NULL;
+											const json_t *json_param_p = NULL;
 											char delimiter = S_DEFAULT_COLUMN_DELIMITER;
 											uint32 num_successes = 0;
 											bool free_json_param_flag = false;
+											const char *delim_p = NULL;
+											const char *data_s = NULL;
 
 											/* Get the current delimiter */
-											param_p = GetParameterFromParameterSetByName (param_set_p, PGS_DELIMITER.npt_name_s);
-											if (param_p)
+											GetCurrentCharParameterValueFromParameterSet (param_set_p, PGS_DELIMITER.npt_name_s, &delim_p);
+											if (delim_p)
 												{
-													delimiter = param_p -> pa_current_value.st_char_value;
+													delimiter = *delim_p;
 												}
 
 											/*
@@ -720,77 +711,72 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 											 *
 											 * Has a tabular dataset been uploaded...
 											 */
-											param_p = GetParameterFromParameterSetByName (param_set_p, PGS_FILE.npt_name_s);
-											if (param_p && (!IsStringEmpty (param_p -> pa_current_value.st_string_value_s)))
+											if (GetCurrentStringParameterValueFromParameterSet (param_set_p, PGS_DELIMITER.npt_name_s, &data_s))
 												{
-													char *data_s = param_p -> pa_current_value.st_string_value_s;
-													LinkedList *headers_p = GetTabularHeaders (&data_s, delimiter, '\n', GetPathogenomicsJSONFieldType, data_p);
-
-													if (headers_p)
+													if (!IsStringEmpty (data_s))
 														{
-															bool success_flag = false;
+															LinkedList *headers_p = GetTabularHeaders (&data_s, delimiter, '\n', GetPathogenomicsJSONFieldType, data_p);
 
-															/* Check that all of the required columns are present */
-															switch (collection_type)
-															{
-																case PD_SAMPLE:
-																	success_flag = CheckSampleData (headers_p, job_p, data_p);
-																	break;
-
-																case PD_PHENOTYPE:
-																	success_flag = CheckPhenotypeData (headers_p, job_p, data_p);
-																	break;
-
-																case PD_GENOTYPE:
-																	success_flag = CheckGenotypeData (headers_p, job_p, data_p);
-																	break;
-
-																case PD_FILES:
-																	break;
-
-																default:
-																	break;
-															}
-
-															if (success_flag)
+															if (headers_p)
 																{
-																	json_param_p = ConvertTabularDataToJSON (param_p -> pa_current_value.st_string_value_s, delimiter, '\n', headers_p);
+																	bool success_flag = false;
+
+																	/* Check that all of the required columns are present */
+																	switch (collection_type)
+																	{
+																		case PD_SAMPLE:
+																			success_flag = CheckSampleData (headers_p, job_p, data_p);
+																			break;
+
+																		case PD_PHENOTYPE:
+																			success_flag = CheckPhenotypeData (headers_p, job_p, data_p);
+																			break;
+
+																		case PD_GENOTYPE:
+																			success_flag = CheckGenotypeData (headers_p, job_p, data_p);
+																			break;
+
+																		case PD_FILES:
+																			break;
+
+																		default:
+																			break;
+																	}
+
+																	if (success_flag)
+																		{
+																			json_param_p = ConvertTabularDataToJSON (data_s, delimiter, '\n', headers_p);
+																		}
+
+																	FreeLinkedList (headers_p);
+																}		/* if (headers_p) */
+
+
+															if (json_param_p)
+																{
+		#if PATHOGENOMICS_SERVICE_DEBUG >= STM_LEVEL_FINE
+																	PrintJSONToLog (STM_LEVEL_FINE, __FILE__, __LINE__, json_param_p, "table");
+		#endif
+
+																	free_json_param_flag = true;
 																}
-
-															FreeLinkedList (headers_p);
-														}		/* if (headers_p) */
-
-
-													if (json_param_p)
-														{
-#if PATHOGENOMICS_SERVICE_DEBUG >= STM_LEVEL_FINE
-															PrintJSONToLog (STM_LEVEL_FINE, __FILE__, __LINE__, json_param_p, "table");
-#endif
-
-															free_json_param_flag = true;
 														}
 												}
 											/* ... or do we have an insert statement? */
-											else if (((param_p = GetParameterFromParameterSetByName (param_set_p, PGS_UPDATE.npt_name_s)) != NULL) && (!IsJSONEmpty (param_p -> pa_current_value.st_json_p)))
-												{
-													json_param_p = param_p -> pa_current_value.st_json_p;
-												}
-
-											/* Are we doing an update? */
-											if (json_param_p)
+											else if (((param_p = GetParameterFromParameterSetByName (param_set_p, PGS_UPDATE.npt_name_s)) != NULL) && (!IsJSONEmpty (json_param_p = GetJSONParameterCurrentValue ((JSONParameter *) param_p))))
 												{
 													uint32 size = 1;
 													OperationStatus status;
-													SharedType shared_type;
-													uint32 stage_time = data_p -> psd_default_stage_time;
+													int32 stage_time = data_p -> psd_default_stage_time;
+													const int32 *stage_time_p = NULL;
 
-													InitSharedType (&shared_type);
-
-													if (GetParameterValueFromParameterSet (param_set_p, PGS_STAGE_TIME.npt_name_s, &shared_type, true))
+													if (GetCurrentSignedIntParameterValueFromParameterSet (param_set_p, PGS_STAGE_TIME.npt_name_s, &stage_time_p))
 														{
-															stage_time = shared_type.st_long_value;
+															if (stage_time_p)
+																{
+																	stage_time = *stage_time_p;
+																}
 														}
-
 
 													if (json_is_array (json_param_p))
 														{
@@ -814,18 +800,11 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 														}
 
 													SetServiceJobStatus (job_p, status);
-
-													if (free_json_param_flag)
-														{
-															WipeJSON (json_param_p);
-														}
 												}
-											else if (((param_p = GetParameterFromParameterSetByName (param_set_p, PGS_QUERY.npt_name_s)) != NULL) && (!IsJSONEmpty (param_p -> pa_current_value.st_json_p)))
+											else if (((param_p = GetParameterFromParameterSetByName (param_set_p, PGS_QUERY.npt_name_s)) != NULL) && (!IsJSONEmpty (json_param_p = GetJSONParameterCurrentValue ((JSONParameter *) param_p))))
 												{
 													json_t *results_p = NULL;
 													OperationStatus search_status;
-
-													json_param_p = param_p -> pa_current_value.st_json_p;
 
 													search_status = SearchData (tool_p, job_p, json_param_p, collection_type, data_p, preview_flag);
 
@@ -838,7 +817,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 															num_successes = GetNumberOfServiceJobResults (job_p);
 														}
 												}
-											else if (((param_p = GetParameterFromParameterSetByName (param_set_p, PGS_REMOVE.npt_name_s)) != NULL) && (!IsJSONEmpty (param_p -> pa_current_value.st_json_p)))
+											else if (((param_p = GetParameterFromParameterSetByName (param_set_p, PGS_REMOVE.npt_name_s)) != NULL) && (!IsJSONEmpty (json_param_p = GetJSONParameterCurrentValue ((JSONParameter *) param_p))))
 												{
 													uint32 size = 1;
 													OperationStatus status;
@@ -848,7 +827,6 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 															size = json_array_size (json_param_p);
 														}
 
-													json_param_p = param_p -> pa_current_value.st_json_p;
 													num_successes = DeleteData (tool_p, job_p, json_param_p, collection_type, data_p);
 
 													if (num_successes == 0)
@@ -1127,7 +1105,7 @@ static json_t *FilterResultsByDate (json_t *src_results_p, const bool preview_fl
 }
 
 
-static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, json_t *data_p, const PathogenomicsData collection_type, PathogenomicsServiceData * UNUSED_PARAM (service_data_p), const bool preview_flag)
+static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, const json_t *data_p, const PathogenomicsData collection_type, PathogenomicsServiceData * UNUSED_PARAM (service_data_p), const bool preview_flag)
 {
 	OperationStatus status = OS_FAILED;
 	json_t *values_p = json_object_get (data_p, MONGO_OPERATION_DATA_S);
@@ -1392,7 +1370,7 @@ bool AddErrorMessage (json_t *errors_p, const json_t *values_p, const size_t row
  */
 
 
-static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, json_t *values_p, const PathogenomicsData collection_type, const uint32 stage_time, PathogenomicsServiceData *data_p)
+static uint32 InsertData (MongoTool *tool_p, ServiceJob *job_p, const json_t *values_p, const PathogenomicsData collection_type, const uint32 stage_time, PathogenomicsServiceData *data_p)
 {
 	uint32 num_imports = 0;
 	const char *(*insert_fn) (MongoTool *tool_p, json_t *values_p, const uint32 stage_time, PathogenomicsServiceData *data_p) = NULL;
@@ -1522,10 +1500,10 @@ bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *erro
 }
 
 
-static uint32 DeleteData (MongoTool *tool_p, ServiceJob * UNUSED_PARAM (job_p), json_t *data_p, const PathogenomicsData UNUSED_PARAM (collection_type), PathogenomicsServiceData * UNUSED_PARAM (service_data_p))
+static uint32 DeleteData (MongoTool *tool_p, ServiceJob * UNUSED_PARAM (job_p), const json_t *data_p, const PathogenomicsData UNUSED_PARAM (collection_type), PathogenomicsServiceData * UNUSED_PARAM (service_data_p))
 {
 	bool success_flag = false;
-	json_t *selector_p = json_object_get (data_p, MONGO_OPERATION_DATA_S);
+	const json_t *selector_p = json_object_get (data_p, MONGO_OPERATION_DATA_S);
 
 	if (selector_p)
 		{
