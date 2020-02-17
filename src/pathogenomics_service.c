@@ -75,11 +75,11 @@ static const int32 S_DEFAULT_STAGE_TIME = 30;
 
 static Service *GetPathogenomicsService (GrassrootsServer *grassroots_p);
 
-static const char *GetPathogenomicsServiceName (Service *service_p);
+static const char *GetPathogenomicsServiceName (const Service *service_p);
 
-static const char *GetPathogenomicsServiceDesciption (Service *service_p);
+static const char *GetPathogenomicsServiceDesciption (const Service *service_p);
 
-static const char *GetPathogenomicsServiceInformationUri (Service *service_p);
+static const char *GetPathogenomicsServiceInformationUri (const Service *service_p);
 
 static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Resource *resource_p, UserDetails *user_p);
 
@@ -89,7 +89,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 
 static  ParameterSet *IsResourceForPathogenomicsService (Service *service_p, Resource *resource_p, Handler *handler_p);
 
-static bool GetPathogenomicsServiceParameterTypesForNamedParameters (struct Service *service_p, const char *param_name_s, ParameterType *pt_p);
+static bool GetPathogenomicsServiceParameterTypesForNamedParameters (const Service *service_p, const char *param_name_s, ParameterType *pt_p);
 
 static PathogenomicsServiceData *AllocatePathogenomicsServiceData (void);
 
@@ -333,19 +333,19 @@ static void FreePathogenomicsServiceData (PathogenomicsServiceData *data_p)
 }
 
 
-static const char *GetPathogenomicsServiceName (Service * UNUSED_PARAM (service_p))
+static const char *GetPathogenomicsServiceName (const Service * UNUSED_PARAM (service_p))
 {
 	return "Field Pathogenomics";
 }
 
 
-static const char *GetPathogenomicsServiceDesciption (Service * UNUSED_PARAM (service_p))
+static const char *GetPathogenomicsServiceDesciption (const Service * UNUSED_PARAM (service_p))
 {
 	return "Analyse the spread of Wheat-related diseases both geographically and over time";
 }
 
 
-static const char *GetPathogenomicsServiceInformationUri (Service * UNUSED_PARAM (service_p))
+static const char *GetPathogenomicsServiceInformationUri (const Service * UNUSED_PARAM (service_p))
 {
 	return NULL;
 }
@@ -413,7 +413,7 @@ static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Reso
 }
 
 
-static bool GetPathogenomicsServiceParameterTypesForNamedParameters (struct Service *service_p, const char *param_name_s, ParameterType *pt_p)
+static bool GetPathogenomicsServiceParameterTypesForNamedParameters (const Service *service_p, const char *param_name_s, ParameterType *pt_p)
 {
 	bool success_flag = true;
 
