@@ -631,7 +631,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 																			{
 																				PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, dest_record_p, "Failed to add job to %s", uuid_s);
 
-																				if (!AddErrorToServiceJob (job_p, title_s, "Failed to add document to result"))
+																				if (!AddErrorMessageToServiceJob (job_p, title_s, "Failed to add document to result"))
 																					{
 																						PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to set job error data");
 																					}
@@ -644,7 +644,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 																	{
 																		PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "GetResourceAsJSONByParts failed");
 
-																		if (!AddErrorToServiceJob (job_p, title_s, "Failed to get document to add to result"))
+																		if (!AddErrorMessageToServiceJob (job_p, title_s, "Failed to get document to add to result"))
 																			{
 																				PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to set job error data");
 																			}
@@ -683,7 +683,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 												{
 													PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "GetAllMongoResultsAsJSON for \"%s\".\"%s\" failed", data_p -> psd_database_s, collection_name_s);
 
-													if (!AddErrorToServiceJob (job_p, "Search failure", "Failed to get results from query"))
+													if (!AddErrorMessageToServiceJob (job_p, "Search failure", "Failed to get results from query"))
 														{
 															PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add job error value");
 														}
@@ -1241,7 +1241,7 @@ static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, const j
 																{
 																	if (!AddResultToServiceJob (job_p, resource_p))
 																		{
-																			AddErrorToServiceJob (job_p, title_s, "Failed to add result");
+																			AddErrorMessageToServiceJob (job_p, title_s, "Failed to add result");
 
 																			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add json resource for " SIZET_FMT " to results array", i);
 																			json_decref (resource_p);
@@ -1458,7 +1458,7 @@ bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *erro
 
 	if (id_s)
 		{
-			added_error_flag = AddErrorToServiceJob (job_p, id_s, error_s);
+			added_error_flag = AddErrorMessageToServiceJob (job_p, id_s, error_s);
 		}
 	else
 		{
@@ -1470,7 +1470,7 @@ bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *erro
 
 					if (row_s)
 						{
-							added_error_flag = AddErrorToServiceJob (job_p, row_s, error_s);
+							added_error_flag = AddErrorMessageToServiceJob (job_p, row_s, error_s);
 
 							FreeCopiedString (row_s);
 						}
