@@ -77,7 +77,9 @@ static Service *GetPathogenomicsService (GrassrootsServer *grassroots_p);
 
 static const char *GetPathogenomicsServiceName (const Service *service_p);
 
-static const char *GetPathogenomicsServiceDesciption (const Service *service_p);
+static const char *GetPathogenomicsServiceAlias (const Service *service_p);
+
+static const char *GetPathogenomicsServiceDescription (const Service *service_p);
 
 static const char *GetPathogenomicsServiceInformationUri (const Service *service_p);
 
@@ -194,7 +196,8 @@ static Service *GetPathogenomicsService (GrassrootsServer *grassroots_p)
 				{
 					if (InitialiseService (service_p,
 																 GetPathogenomicsServiceName,
-																 GetPathogenomicsServiceDesciption,
+																 GetPathogenomicsServiceDescription,
+																 GetPathogenomicsServiceAlias,
 																 GetPathogenomicsServiceInformationUri,
 																 RunPathogenomicsService,
 																 IsResourceForPathogenomicsService,
@@ -339,7 +342,13 @@ static const char *GetPathogenomicsServiceName (const Service * UNUSED_PARAM (se
 }
 
 
-static const char *GetPathogenomicsServiceDesciption (const Service * UNUSED_PARAM (service_p))
+static const char *GetPathogenomicsServiceAlias (const Service * UNUSED_PARAM (service_p))
+{
+	return "field_pathogenomics";
+}
+
+
+static const char *GetPathogenomicsServiceDescription (const Service * UNUSED_PARAM (service_p))
 {
 	return "Analyse the spread of Wheat-related diseases both geographically and over time";
 }
