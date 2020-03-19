@@ -344,7 +344,7 @@ static const char *GetPathogenomicsServiceName (const Service * UNUSED_PARAM (se
 
 static const char *GetPathogenomicsServiceAlias (const Service * UNUSED_PARAM (service_p))
 {
-	return "field_pathogenomics/search";
+	return "field_pathogenomics" SERVICE_GROUP_ALIAS_SEPARATOR "search";
 }
 
 
