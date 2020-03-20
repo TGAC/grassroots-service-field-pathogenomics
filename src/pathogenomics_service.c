@@ -1250,7 +1250,7 @@ static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, const j
 																{
 																	if (!AddResultToServiceJob (job_p, resource_p))
 																		{
-																			AddErrorMessageToServiceJob (job_p, title_s, "Failed to add result");
+																			AddGeneralErrorMessageToServiceJob (job_p, "Failed to add result data");
 
 																			PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add json resource for " SIZET_FMT " to results array", i);
 																			json_decref (resource_p);
