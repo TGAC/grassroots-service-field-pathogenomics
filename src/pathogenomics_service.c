@@ -692,7 +692,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 												{
 													PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "GetAllMongoResultsAsJSON for \"%s\".\"%s\" failed", data_p -> psd_database_s, collection_name_s);
 
-													if (!AddErrorMessageToServiceJob (job_p, "Search failure", "Failed to get results from query"))
+													if (!AddGeneralErrorMessageToServiceJob (job_p, "Search failed to get results"))
 														{
 															PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to add job error value");
 														}
