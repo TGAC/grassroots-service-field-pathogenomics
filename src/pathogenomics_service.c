@@ -640,7 +640,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 																			{
 																				PrintJSONToErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, dest_record_p, "Failed to add job to %s", uuid_s);
 
-																				if (!AddErrorMessageToServiceJob (job_p, title_s, "Failed to add document to result"))
+																				if (!AddGeneralErrorMessageToServiceJob (job_p, "Failed to add document to result"))
 																					{
 																						PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to set job error data");
 																					}
@@ -653,7 +653,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 																	{
 																		PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "GetResourceAsJSONByParts failed");
 
-																		if (!AddErrorMessageToServiceJob (job_p, title_s, "Failed to get document to add to result"))
+																		if (!AddGeneralErrorMessageToServiceJob (job_p, "Failed to get document to add to result"))
 																			{
 																				PrintErrors (STM_LEVEL_SEVERE, __FILE__, __LINE__, "Failed to set job error data");
 																			}
@@ -1467,7 +1467,14 @@ bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *erro
 
 	if (id_s)
 		{
-			added_error_flag = AddErrorMessageToServiceJob (job_p, id_s, error_s);
+			char *row_s = ConcatenateVarArgsStrings ("row ", id_s, " ", error_s, NULL);
+
+			if (row_s)
+				{
+					added_error_flag = AddGeneralErrorMessageToServiceJob (job_p, row_s);
+
+					FreeCopiedString (row_s);
+				}
 		}
 	else
 		{
@@ -1475,11 +1482,11 @@ bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *erro
 
 			if (index_s)
 				{
-					char *row_s = ConcatenateStrings ("row ", index_s);
+					char *row_s = ConcatenateVarArgsStrings ("row ", index_s, " ", error_s, NULL);
 
 					if (row_s)
 						{
-							added_error_flag = AddErrorMessageToServiceJob (job_p, row_s, error_s);
+							added_error_flag = AddGeneralErrorMessageToServiceJob (job_p, row_s);
 
 							FreeCopiedString (row_s);
 						}

@@ -138,7 +138,7 @@ bool CheckForFields (const LinkedList *column_headers_p, const char **headers_ss
 
 					if (key_s)
 						{
-							if (!AddErrorMessageToServiceJob (job_p, key_s, "Column not found"))
+							if (!AddGeneralErrorMessageToServiceJob (job_p, key_s))
 								{
 									PrintErrors (STM_LEVEL_WARNING, __FILE__, __LINE__, "Failed to add error for %s to job response", key_s);
 								}
