@@ -229,20 +229,17 @@ static Service *GetPathogenomicsService (GrassrootsServer *grassroots_p)
 						}		/* if (InitialiseService (.... */
 					else
 						{
-							FreeService (service_p);
-							service_p = NULL;
-							data_p = NULL;
+							if (!service_p -> se_data_p)
+								{
+									FreePathogenomicsServiceData (data_p);
+								}
 						}
 
-					if (data_p)
-						{
-							FreePathogenomicsServiceData (data_p);
-						}
 				}		/* if (data_p) */
 
 			if (service_p)
 				{
-					FreeMemory (service_p);
+					FreeService (service_p);
 				}
 		}		/* if (service_p) */
 
