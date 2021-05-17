@@ -91,7 +91,7 @@ struct /*PATHOGENOMICS_SERVICE_LOCAL*/ PathogenomicsServiceData
 	 *
 	 * The default stage time, in days, before the filed sample data gets published
 	 */
-	int32 psd_default_stage_time;
+	json_int_t psd_default_stage_time;
 };
 
 

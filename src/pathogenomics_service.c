@@ -36,6 +36,8 @@
 #include "time_util.h"
 #include "io_utils.h"
 #include "audit.h"
+#include "uuid_util.h"
+
 
 #include "char_parameter.h"
 #include "json_parameter.h"
@@ -315,11 +317,9 @@ static bool AddIndexes (PathogenomicsServiceData *data_p)
 
 	bson_init (&keys);
 	BSON_APPEND_UTF8 (&keys, PG_VARIETY_S, "text");
-	mongoc_collection_create_index (data_p -> psd_tool_p -> mt_collection_p, &keys, &opt, &error);
 
 	bson_reinit (&keys);
 	BSON_APPEND_UTF8 (&keys, PG_DISEASE_S, "text");
-	mongoc_collection_create_index (data_p -> psd_tool_p -> mt_collection_p, &keys, &opt, &error);
 
 	return success_flag;
 }
@@ -1464,7 +1464,7 @@ bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *erro
 
 	if (id_s)
 		{
-			char *row_s = ConcatenateVarArgsStrings ("row ", id_s, " ", error_s, NULL);
+			char *row_s = ConcatenateVarargsStrings ("row ", id_s, " ", error_s, NULL);
 
 			if (row_s)
 				{
@@ -1479,7 +1479,7 @@ bool AddErrorMessage (ServiceJob *job_p, const json_t *value_p, const char *erro
 
 			if (index_s)
 				{
-					char *row_s = ConcatenateVarArgsStrings ("row ", index_s, " ", error_s, NULL);
+					char *row_s = ConcatenateVarargsStrings ("row ", index_s, " ", error_s, NULL);
 
 					if (row_s)
 						{
