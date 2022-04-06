@@ -148,7 +148,7 @@ const char *InsertPhenotypeData (MongoTool *tool_p, json_t *values_p, const uint
 					error_s = "Failed to move UKCPVS ID key to top-level phenotype data";
 				}
 
-			WipeJSON (doc_p);
+			json_decref (doc_p);
 		}		/* if (doc_p) */
 	else
 		{

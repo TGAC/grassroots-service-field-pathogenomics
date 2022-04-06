@@ -96,7 +96,7 @@ bool SetDateForSchemaOrg (json_t *values_p, const char * const key_s, const char
 
 			if (!success_flag)
 				{
-					WipeJSON (child_p);
+					json_decref (child_p);
 				}
 		}
 	else

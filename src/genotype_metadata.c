@@ -98,7 +98,7 @@ const char *InsertGenotypeData (MongoTool *tool_p, json_t *values_p,  const uint
 							error_s = "Failed to add id to new genotype data";
 						}
 
-					WipeJSON (doc_p);
+					json_decref (doc_p);
 				}		/* if (doc_p) */
 			else
 				{

@@ -223,7 +223,7 @@ const char *InsertSampleData (MongoTool *tool_p, json_t *values_p, const uint32 
 
 					if (selector_p)
 						{
-							WipeJSON (selector_p);
+							json_decref (selector_p);
 						}
 
 				}		/* if (!error_s) */
@@ -706,7 +706,7 @@ static bool ConvertToSchemaOrgRepresentation (json_t *values_p, const char * con
 
 					if (!success_flag)
 						{
-							WipeJSON (child_p);
+							json_decref (child_p);
 						}
 				}
 			else
