@@ -982,7 +982,7 @@ static char *GetCurrentDateAsString (void)
 
 	if (GetCurrentTime (&current_time))
 		{
-			date_s = GetTimeAsString (&current_time, false);
+			date_s = GetTimeAsString (&current_time, false, NULL);
 
 			if (!date_s)
 				{
@@ -1181,7 +1181,7 @@ static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, const j
 
 											if (GetCurrentTime (&current_time))
 												{
-													date_s = GetTimeAsString (&current_time, false);
+													date_s = GetTimeAsString (&current_time, false, NULL);
 
 													if (!date_s)
 														{

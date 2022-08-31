@@ -44,7 +44,7 @@ bool AddPublishDateToJSON (json_t *json_p, const char * const key_s, const int32
 					AddIntervalToTime (&current_time, stage_time);
 				}
 
-			date_s = GetTimeAsString (&current_time, false);
+			date_s = GetTimeAsString (&current_time, false, NULL);
 
 			if (date_s)
 				{
