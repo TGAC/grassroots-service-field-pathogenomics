@@ -85,13 +85,13 @@ static const char *GetPathogenomicsServiceDescription (const Service *service_p)
 
 static const char *GetPathogenomicsServiceInformationUri (const Service *service_p);
 
-static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Resource *resource_p, UserDetails *user_p);
+static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, DataResource *resource_p, UserDetails *user_p);
 
 static void ReleasePathogenomicsServiceParameters (Service *service_p, ParameterSet *params_p);
 
 static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet *param_set_p, UserDetails *user_p, ProvidersStateTable *providers_p);
 
-static  ParameterSet *IsResourceForPathogenomicsService (Service *service_p, Resource *resource_p, Handler *handler_p);
+static  ParameterSet *IsResourceForPathogenomicsService (Service *service_p, DataResource *resource_p, Handler *handler_p);
 
 static bool GetPathogenomicsServiceParameterTypesForNamedParameters (const Service *service_p, const char *param_name_s, ParameterType *pt_p);
 
@@ -357,7 +357,7 @@ static const char *GetPathogenomicsServiceInformationUri (const Service * UNUSED
 }
 
 
-static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Resource * UNUSED_PARAM (resource_p), UserDetails * UNUSED_PARAM (user_p))
+static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, DataResource * UNUSED_PARAM (resource_p), UserDetails * UNUSED_PARAM (user_p))
 {
 	ParameterSet *params_p  = AllocateParameterSet ("Pathogenomics service parameters", "The parameters used for the Pathogenomics service");
 
@@ -629,7 +629,7 @@ static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet 
 															json_array_foreach (raw_results_p, i, src_record_p)
 															{
 																char *title_s = ConvertUnsignedIntegerToString (i);
-																json_t *dest_record_p = GetResourceAsJSONByParts (PROTOCOL_INLINE_S, NULL, title_s, src_record_p);
+																json_t *dest_record_p = GetDataResourceAsJSONByParts (PROTOCOL_INLINE_S, NULL, title_s, src_record_p);
 
 																if (dest_record_p)
 																	{
@@ -1005,7 +1005,7 @@ static json_t *ConvertToResource (const size_t i, json_t *src_record_p)
 
 	if (title_s)
 		{
-			resource_p = GetResourceAsJSONByParts (PROTOCOL_INLINE_S, NULL, title_s, src_record_p);
+			resource_p = GetDataResourceAsJSONByParts (PROTOCOL_INLINE_S, NULL, title_s, src_record_p);
 
 			FreeCopiedString (title_s);
 		}		/* if (raw_result_p) */
@@ -1241,7 +1241,7 @@ static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, const j
 
 													if (raw_result_p)
 														{
-															json_t *resource_p = GetResourceAsJSONByParts (PROTOCOL_INLINE_S, NULL, title_s, raw_result_p);
+															json_t *resource_p = GetDataResourceAsJSONByParts (PROTOCOL_INLINE_S, NULL, title_s, raw_result_p);
 
 															if (resource_p)
 																{
@@ -1527,7 +1527,7 @@ static uint32 DeleteData (MongoTool *tool_p, ServiceJob * UNUSED_PARAM (job_p), 
 }
 
 
-static ParameterSet *IsResourceForPathogenomicsService (Service * UNUSED_PARAM (service_p), Resource * UNUSED_PARAM (resource_p), Handler * UNUSED_PARAM (handler_p))
+static ParameterSet *IsResourceForPathogenomicsService (Service * UNUSED_PARAM (service_p), DataResource * UNUSED_PARAM (resource_p), Handler * UNUSED_PARAM (handler_p))
 {
 	return NULL;
 }
