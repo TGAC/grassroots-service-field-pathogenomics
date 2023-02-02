@@ -980,7 +980,7 @@ static char *GetCurrentDateAsString (void)
 	char *date_s = NULL;
 	struct tm current_time;
 
-	if (GetCurrentTime (&current_time))
+	if (GetPresentTime (&current_time))
 		{
 			date_s = GetTimeAsString (&current_time, false, NULL);
 
@@ -1179,7 +1179,7 @@ static OperationStatus SearchData (MongoTool *tool_p, ServiceJob *job_p, const j
 										{
 											struct tm current_time;
 
-											if (GetCurrentTime (&current_time))
+											if (GetPresentTime (&current_time))
 												{
 													date_s = GetTimeAsString (&current_time, false, NULL);
 

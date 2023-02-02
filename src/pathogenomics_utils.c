@@ -35,7 +35,7 @@ bool AddPublishDateToJSON (json_t *json_p, const char * const key_s, const int32
 	bool success_flag = false;
 	struct tm current_time;
 
-	if (GetCurrentTime (&current_time))
+	if (GetPresentTime (&current_time))
 		{
 			char *date_s = NULL;
 
