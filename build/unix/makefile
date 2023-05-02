@@ -4,7 +4,7 @@ DIR_SRC := $(realpath $(DIR_BUILD)/../../../src)
 DIR_INCLUDE := $(realpath $(DIR_BUILD)/../../../include)
 
 ifeq ($(DIR_BUILD_CONFIG),)
-export DIR_BUILD_CONFIG = $(realpath $(DIR_BUILD)/../../../../../../build-config/unix/)
+export DIR_BUILD_CONFIG = $(realpath $(DIR_BUILD)/../../../../../build-config/unix/)
 #export DIR_BUILD_CONFIG = /Users/tyrrells/Projects/grassroots/build-config/unix/
 endif
 
