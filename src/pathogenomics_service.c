@@ -85,11 +85,11 @@ static const char *GetPathogenomicsServiceDescription (const Service *service_p)
 
 static const char *GetPathogenomicsServiceInformationUri (const Service *service_p);
 
-static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, DataResource *resource_p, UserDetails *user_p);
+static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, DataResource *resource_p, User *user_p);
 
 static void ReleasePathogenomicsServiceParameters (Service *service_p, ParameterSet *params_p);
 
-static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet *param_set_p, UserDetails *user_p, ProvidersStateTable *providers_p);
+static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet *param_set_p, User *user_p, ProvidersStateTable *providers_p);
 
 static  ParameterSet *IsResourceForPathogenomicsService (Service *service_p, DataResource *resource_p, Handler *handler_p);
 
@@ -137,7 +137,7 @@ static ServiceMetadata *GetPathogenomicsServiceMetadata (Service *service_p);
  */
 
 
-ServicesArray *GetServices (UserDetails *user_p, GrassrootsServer *grassroots_p)
+ServicesArray *GetServices (User *user_p, GrassrootsServer *grassroots_p)
 {
 	ServicesArray *services_p = AllocateServicesArray (1);
 
@@ -357,7 +357,7 @@ static const char *GetPathogenomicsServiceInformationUri (const Service * UNUSED
 }
 
 
-static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, DataResource * UNUSED_PARAM (resource_p), UserDetails * UNUSED_PARAM (user_p))
+static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, DataResource * UNUSED_PARAM (resource_p), User * UNUSED_PARAM (user_p))
 {
 	ParameterSet *params_p  = AllocateParameterSet ("Pathogenomics service parameters", "The parameters used for the Pathogenomics service");
 
@@ -567,7 +567,7 @@ static bool GetCollectionName (ParameterSet *param_set_p, PathogenomicsServiceDa
 }
 
 
-static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet *param_set_p, UserDetails * UNUSED_PARAM (user_p), ProvidersStateTable * UNUSED_PARAM (providers_p))
+static ServiceJobSet *RunPathogenomicsService (Service *service_p, ParameterSet *param_set_p, User * UNUSED_PARAM (user_p), ProvidersStateTable * UNUSED_PARAM (providers_p))
 {
 	PathogenomicsServiceData *data_p = (PathogenomicsServiceData *) (service_p -> se_data_p);
 
