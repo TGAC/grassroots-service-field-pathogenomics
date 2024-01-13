@@ -389,7 +389,7 @@ static ParameterSet *GetPathogenomicsServiceParameters (Service *service_p, Data
 
 																	for (i = 0; i < PD_NUM_TYPES; ++ i)
 																		{
-																			if (!CreateAndAddStringParameterOption ((StringParameter *) param_p, s_data_names_pp [i], NULL))
+																			if (!CreateAndAddStringParameterOption (param_p, s_data_names_pp [i], NULL))
 																				{
 																					i = PD_NUM_TYPES;
 																					success_flag = false;
